@@ -7,11 +7,15 @@ Esta biblioteca hace referencia en sus notaciones a los nombres 'Alice' y 'Bob' 
 
 A la hora de realizar un intercambio de claves, el procedimiento se puede realizar de dos formas diferentes: con el protocolo UAKE o AKE. Los dos protocolos tienen usos bastante diferentes, pero no obstante, la implementacion a la hora de llamar a las funciones de la libreria son bastante parecidas.
 
+<br>
+
 ## El protocolo UAKE
 
 El protocolo UAKE (Unilaterally Authenticated Key Exchange) es un protocolo de intercambio de claves que se utiliza para establecer una clave compartida entre dos partes (Alice y Bob. La característica distintiva de UAKE es que proporciona autenticación unilateral, lo que significa que solo una de las partes, generalmente Alice, se autentica ante la otra parte, Bob, durante el proceso de intercambio de claves. Bob no necesita autenticarse ante Alice en este protocolo.
 
 El propósito principal del protocolo UAKE es permitir a Alice y Bob acordar una clave compartida de manera segura y autenticar a Alice ante Bob. Esto puede ser útil en situaciones donde Alice necesita probar su identidad ante Bob, pero Bob no necesita demostrar su identidad a Alice. 
+
+<br>
 
 ## El protocolo AKE
 
@@ -19,9 +23,11 @@ El protocolo AKE (Authenticated Key Exchange) es un protocolo criptográfico que
 
 En resumen, el protocolo AKE consta de varias fases y operaciones, y su objetivo principal es garantizar que ambas partes obtengan la misma clave compartida y estén seguras de la identidad de la otra parte. 
 
+<br>
+
 ## Funciones
 
-### Intercambio de claves unilateral
+### Intercambio de claves unilateral (UAKE)
 
 ```c
 void kex_uake_initA(uint8_t *send, uint8_t *tk, uint8_t *sk, const uint8_t *pkb);
@@ -57,6 +63,42 @@ Se utiliza para que 'Alice' complete el proceso UAKE despues de recibir los dato
 - `k`: Clave compartida entre Alice y Bob.
 - `recv`: Puntero/array de datos enviado por 'Bob' en `kex_uake_sharedB`.
 - `tk`: Clave secreta de Alice.
-- `sk`: Clave secreta de Alice
+- `sk`: Clave secreta de Alice.
 
-### Intercambio de claves bilateral
+### Intercambio de claves bilateral (AKE)
+
+
+```c
+void kex_ake_initA(uint8_t *send, uint8_t *tk, uint8_t *sk, const uint8_t *pkb);
+```
+Se utiliza para que 'Alice' inicie un proceso AKE. 
+- `send`: 
+- `tk`: 
+- `sk`:
+- `pkb`:
+
+---
+
+```c
+void kex_ake_sharedB(uint8_t *send, uint8_t *k, const uint8_t *recv, const uint8_t *skb, const uint8_t *pka);
+```
+
+Se utiliza para que 'Bob' complete el proceso UAKE despues de recibir los datos enviados por 'Alice'.
+- `send`:
+- `k`:
+- `recv`:
+- `skb`:
+- `pka`:
+
+--- 
+
+```c
+void kex_ake_sharedA(uint8_t *k, const uint8_t *recv, const uint8_t *tk, const uint8_t *sk, const uint8_t *ska);
+```
+
+Se utiliza para que 'Alice' complete el proceso UAKE despues de recibir los datos enviados por 'Bob'.
+- `k`:
+- `recv`:
+- `tk`:
+- `sk`:
+- `ska`:
