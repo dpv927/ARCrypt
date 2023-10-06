@@ -15,6 +15,10 @@ El protocolo UAKE (Unilaterally Authenticated Key Exchange) es un protocolo de i
 
 El propósito principal del protocolo UAKE es permitir a Alice y Bob acordar una clave compartida de manera segura y autenticar a Alice ante Bob. Esto puede ser útil en situaciones donde Alice necesita probar su identidad ante Bob, pero Bob no necesita demostrar su identidad a Alice. 
 
+<div class="UAKE protocol scheme" align="center">
+  <img src="https://github.com/dpv927/kayberc/assets/113710742/5df304b0-04ea-4494-8fcf-3be4ceb6a36f">
+</div>
+
 <br>
 
 ## El protocolo AKE
@@ -22,6 +26,10 @@ El propósito principal del protocolo UAKE es permitir a Alice y Bob acordar una
 El protocolo AKE (Authenticated Key Exchange) es un protocolo criptográfico que permite a dos partes, generalmente llamadas Alice y Bob, establecer una clave compartida de manera segura y autenticarse mutuamente durante el proceso. A diferencia de los protocolos de intercambio de claves sin autenticación, como Diffie-Hellman, donde solo se acuerda una clave compartida, en AKE, ambas partes pueden verificar la identidad de la otra.
 
 En resumen, el protocolo AKE consta de varias fases y operaciones, y su objetivo principal es garantizar que ambas partes obtengan la misma clave compartida y estén seguras de la identidad de la otra parte. 
+
+<div class="UAKE protocol scheme" align="center">
+  <img src="https://github.com/dpv927/kayberc/assets/113710742/cb24f03f-f98a-4e51-a57d-29b962eeb134">
+</div>
 
 <br>
 
@@ -83,6 +91,7 @@ Se utiliza para que 'Alice' complete el proceso UAKE despues de recibir los dato
 - `tk`: Clave secreta de Alice.
 - `sk`: Clave secreta de Alice.
 
+<!--
 ### Intercambio de claves bilateral (AKE)
 
 
@@ -120,10 +129,14 @@ Se utiliza para que 'Alice' complete el proceso UAKE despues de recibir los dato
 - `tk`:
 - `sk`:
 - `ska`:
+-->
 
 ## Ejemplos
 
 ### Intercambio de claves con UAKE
+
+Este el siguiente codigo que se va a mostrar se puede encontrar en la ruta <a href="src/test_kex.c">src/test_kex.c</a> y se puede obtener 
+en su version compilada (para ejecutar) tras correr el comando `make`:
 
 ```c
 #include <stdint.h>
@@ -200,19 +213,30 @@ int main(void) {
   kex_uake_initA(IDatos.datos_a, Claves.temporal, Claves.encript_a, Bob.clave_p);
   
   // Bob completa su parte del proceso UAKE 
-  /* El objetivo de esta llamada es descifrar los datos enviados por Alice 'datos_a' (send),
-   * clacular la clave compartida bob (kb) (clave compartida de Bob) y proporcionar autenticacion
+  /* El objetivo de esta llamada es descifrar los datos enviados por Alice 'datos_a' (recv),
+   * cacular la clave compartida 'bob' (kb) (clave compartida de Bob) y proporcionar autenticacion
    * a Alice, ya que esta lo ha solicitado al iniciar el protocolo.
    *
    * Para ello, Bob utiliza su clave secreta 'clave_s' (sbk) y la clave publica de Alice (que se
    * encuentra en 'datos_a') para descifrar la clave 'temporal' (tk) que tambien se encontraba en 'datos_a'.  
    *
-   * 
-   *
+   * Por ultimo calcula la clave compartida secreta mediante los datos desencriptados del buffer
+   * datos_a, consiguiendo asi autenticacion.
    * */
   kex_uake_sharedB(IDatos.datos_b, Claves.bob, IDatos.datos_a, Bob.clave_s);
 
   // Alice completa el proceso UAKE  
+  /* Esta llamada se intentan descifrar los datos que ha enviado Bob en datos_b (recv) y calcular 
+   * su clave compartida secreta 'alice' (ka).
+   *
+   * Para ello, va a desencriptar el buffer 'datos_b' enviado por Bob, haciendo uso de la clave
+   * 'encript_a' y guardandolo en un buffer temporal. Tras ello, se copia la clave temporal (tk)
+   * a la segunda mitad del buffer temporal (la primera parte ya esta ocupada con los datos desencriptados
+   * anteriones).
+   *
+   * Finalmente se produce una derivacion de claves con las almacenadas en este buffer temporal obteniendo
+   * asi la clave de alice.
+   * */
   kex_uake_sharedA(Claves.alice, IDatos.datos_b, Claves.temporal, Claves.encript_a);
    
   // Comprobar si las claves son validas
@@ -221,8 +245,6 @@ int main(void) {
 
   if(!memcmp(Claves.alice, zero, KEX_SSBYTES))
     printf("Error: UAKE produces zero key");
-
   return 0;
 }
-
 ```
