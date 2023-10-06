@@ -3,9 +3,27 @@
 ## Introduccion
 La bilioteca *kex* recibe su nombre por *key exchange*, debido a que implementa diferentes funciones que permiten la comunicacion e intercambio de claves entre dos partes de una comunicacion privadas.
 
-Esta biblioteca hace referencia en sus notaciones a los nombres 'Alice' y 'Bob' como las dos partes que se quieren comunicar entre si, siendo Alice la que empieza el protocolo y Bob como el receptor de esa peticion. Esto es necesario tenerlo en cuenta debido a que algunas funciones incluyen las iniciales de estos nombres a varibles, parametros y funciones.
+Esta biblioteca hace referencia en sus notaciones a los nombres 'Alice' y 'Bob' como las dos partes que se quieren comunicar entre si, siendo Alice la que empieza el protocolo y Bob como el receptor de esa peticion. Esto es necesario tenerlo en cuenta debido a que algunas funciones incluyen las iniciales de estos nombres a varibles y parametros.
 
 A la hora de realizar un intercambio de claves, el procedimiento se puede realizar de dos formas diferentes: con el protocolo UAKE o AKE. Los dos protocolos tienen usos bastante diferentes, pero no obstante, la implementacion a la hora de llamar a las funciones de la libreria son bastante parecidas.
+
+<br>
+
+## Contexto: Sistema asimetrico 
+
+En un sistema asimetrico clasico necesitamos un par de claves secretas y publicas por cada usuario. La base de su funcionamiento es que al cifrar un mensaje con una clave publica de un usuario, solo se puede descifrar el mensaje con la clave privada del mismo usuario y viceversa.
+
+<div class="symetric encryption" align="center">
+  <img src="https://github.com/dpv927/kayberc/assets/113710742/70696499-44a5-46f3-97f4-e23aae336553" width=800>
+</div>
+
+Pero en realidad, para que queremos realizar estos protocolos? Que obtenemos con ellos? La respuesta es sencilla: Obtenemos un par de claves (publica y secreta) estaticas para cada usuario o parte del protocolo y una clave de sesion compartida por ambos usuarios.
+
+Para aclarar el ultimo punto si no ha quedado claro:
+
+- Las claves públicas y privadas permanentes se utilizan para cifrar y descifrar mensajes fuera del contexto de UAKE. Son las claves estáticas que Alice y Bob tienen para autenticación y comunicación a largo plazo.
+- Las claves de sesión ka y kb son claves temporales que se generan durante el proceso de UAKE y se utilizan específicamente para cifrar y descifrar mensajes durante la comunicación actual entre Alice y Bob.
+- Es importante destacar que en el contexto de UAKE, las claves de sesión ka y kb son las que se utilizan para asegurar la comunicación actual, mientras que las claves públicas y privadas permanentes se utilizan principalmente para la autenticación inicial y el establecimiento de la comunicación.
 
 <br>
 
@@ -61,9 +79,9 @@ Se utiliza para que 'Alice' inicie un proceso UAKE. Genera un par de claves: una
 se almacene la clave publica generada y desde `send[send+CRYPTO_PUBLICKEYBYTES]` la clave secreta temporal cifrada.
 
 - `send`: Puntero/array contenedor de datos para enviar a Bob.
-- `tk`: Clave temporal para encriptar `send`.
-- `sk`: Clave secreta de Alice.
-- `pkb`: Clave publica de Bob.
+- `tk`: Clave temporal para guardar en `send`.
+- `sk`: Clave estatica secreta de Alice.
+- `pkb`: Clave estatica publica de Bob.
 
 ---
 
@@ -74,9 +92,9 @@ void kex_uake_sharedB(uint8_t *send, uint8_t *k, const uint8_t *recv, const uint
 Se utiliza para que 'Bob' complete el proceso UAKE despues de recibir los datos enviados por 'Alice'.
 
 - `send`: Puntero/array contenedor de datos para enviar a Alice.
-- `k`: Clave compartida entre Alice y Bob.
-- `recv`: Puntero/array de datos enviado por 'Alice' en el inicio del proceso UAKE.
-- `skb`: Clave secreta de Bob.
+- `k`: Clave secreta compartida de Bob (Objetivo del protocolo).
+- `recv`: Puntero/array de datos enviado por 'Alice' en el inicio del proceso UAKE (`kex_uake_initA`).
+- `skb`: Clave estatica secreta de Bob.
 
 --- 
 
@@ -86,10 +104,10 @@ void kex_uake_sharedA(uint8_t *k, const uint8_t *recv, const uint8_t *tk, const 
 
 Se utiliza para que 'Alice' complete el proceso UAKE despues de recibir los datos enviados por 'Bob'.
 
-- `k`: Clave compartida entre Alice y Bob.
+- `k`: Clave secreta compartida de Alice.
 - `recv`: Puntero/array de datos enviado por 'Bob' en `kex_uake_sharedB`.
-- `tk`: Clave secreta de Alice.
-- `sk`: Clave secreta de Alice.
+- `tk`: Clave temporal del protocolo.
+- `sk`: Clave para desencriptar `tk`.
 
 <!--
 ### Intercambio de claves bilateral (AKE)
@@ -153,24 +171,10 @@ en su version compilada (para ejecutar) tras correr el comando `make`:
 
 /* Objeto usuario */
 typedef struct {
-  uint8_t clave_p[BYTES_CPUBLICA]; // Clave publica del usuario
-  uint8_t clave_s[BYTES_CSECRETA]; // Clave secreta del usuario
+  uint8_t cPublica[BYTES_CPUBLICA];  // Clave publica del usuario
+  uint8_t cSecreta[BYTES_CSECRETA];  // Clave secreta del usuario
+  uint8_t cSesion[KEX_SSBYTES];      // Clave compartida de sesion
 } Usuario;
-
-/* Objeto de para guardar datos del 
- * intercambio de claves entre Usuarios */
-typedef struct {
-  uint8_t datos_a[BYTES_ENVIO_A]; // Datos que va a enviar Alice (Usuario1)
-  uint8_t datos_b[BYTES_ENVIO_B]; // Datos que va a enviar Bob (Usuario2)  
-} Intercambio;
-
-typedef struct {
-  /* Claves del proceso */
-  uint8_t temporal[KEX_SSBYTES];     // Clave temporal para la derivacion de claves
-  uint8_t encript_a[BYTES_CSECRETA]; // Clave de Alice para encriptar 'temporal'
-  uint8_t alice[KEX_SSBYTES];        // Clave compartida de Alice (Obejetivo final)
-  uint8_t bob[KEX_SSBYTES];          // Clave compartida de Bob (Objetivo final)
-} Claves_Generadas;
 
 int main(void) {
   
@@ -179,14 +183,14 @@ int main(void) {
   Usuario Alice;
   Usuario Bob;
 
-  /* Objeto para almacenar los datos 
-   * usados en el intercambio de claves */
-  Intercambio IDatos;
-
-  /* Objeto para almacenar las claves generadas
-   * y usuadas durante el intercambio */
-  Claves_Generadas Claves;
-
+  /* Buffers para enviar datos */
+  uint8_t datosAlice[BYTES_ENVIO_A];  // Datos que va a enviar Alice (Usuario1)
+  uint8_t datosBob[BYTES_ENVIO_B];    // Datos que va a enviar Bob (Usuario2)
+  
+  /* Otras claves del protocolo */
+  uint8_t temporal[KEX_SSBYTES];     // Clave temporal para la derivacion de claves
+  uint8_t encript_a[BYTES_CSECRETA]; // Clave de Alice para encriptar 'temporal'
+  
   /* Literalmente un array con todo ceros para 
   * comprobar si las claves generadas son nulas.
   * Si las claves son nulas, evidentemente no son validas */ 
@@ -195,8 +199,8 @@ int main(void) {
     zero[i] = 0;
 
   // Generar las claves estaticas
-  crypto_kem_keypair(Bob.clave_p, Bob.clave_s);     // Generar claves de Bob
-  crypto_kem_keypair(Alice.clave_p, Alice.clave_s); // Generar claves de Alice
+  crypto_kem_keypair(Bob.cPublica, Bob.cSecreta);     // Generar claves de Bob
+  crypto_kem_keypair(Alice.cPublica, Alice.cSecreta); // Generar claves de Alice
 
   // --------------------------------------------------------- //
   // ---- Codigo para el intercambio de claves unilateral ---- //
@@ -204,47 +208,49 @@ int main(void) {
 
   // Alice inicia el intercambio
   /* Se generan un par de claves: una clave pubica que se almacena en 'datos_a' (send),
-   * y una clave privada para Alice en 'encriptada_a' (sk). Ademas cifra la clave
+   * y una clave privada en 'encript_a' (sk). Ademas cifra la clave
    * 'temporal' (tk) con la clave publica de Bob. 
   *
-  * Con ello, tenemos que send contenga tanto la clave publica de Alice como la 
+  * Con ello, tenemos que send contenga tanto una clave publica de Alice como la 
   * clave secreta temporal cifrada esten almacenadas en 'datos_a' (send).
   *  */
-  kex_uake_initA(IDatos.datos_a, Claves.temporal, Claves.encript_a, Bob.clave_p);
+  kex_uake_initA(datosAlice, temporal, encript_a, Bob.cPublica);
   
   // Bob completa su parte del proceso UAKE 
-  /* El objetivo de esta llamada es descifrar los datos enviados por Alice 'datos_a' (recv),
-   * cacular la clave compartida 'bob' (kb) (clave compartida de Bob) y proporcionar autenticacion
+  /* El objetivo de esta llamada es descifrar los datos enviados por Alice 'datosAlice' (recv),
+   * cacular la clave compartida de sesion de Bob 'cSesion' (kb) y proporcionar autenticacion
    * a Alice, ya que esta lo ha solicitado al iniciar el protocolo.
    *
-   * Para ello, Bob utiliza su clave secreta 'clave_s' (sbk) y la clave publica de Alice (que se
-   * encuentra en 'datos_a') para descifrar la clave 'temporal' (tk) que tambien se encontraba en 'datos_a'.  
+   * Para ello, Bob utiliza su clave secreta 'cSecreta' (sbk) y la clave publica de Alice (que se
+   * encuentra en 'datosAlice') para descifrar la clave cifrada 'temporal' (tk) que se 
+   * encontraba en 'datosAlice'.  
    *
-   * Por ultimo calcula la clave compartida secreta mediante los datos desencriptados del buffer
-   * datos_a, consiguiendo asi autenticacion.
+   * Por ultimo calcula la clave compartida de Bob mediante los datos desencriptados del buffer
+   * datosAlice, consiguiendo asi su autenticacion.
    * */
-  kex_uake_sharedB(IDatos.datos_b, Claves.bob, IDatos.datos_a, Bob.clave_s);
+  kex_uake_sharedB(datosBob, Bob.cSesion, datosAlice, Bob.cSecreta);
 
   // Alice completa el proceso UAKE  
-  /* Esta llamada se intentan descifrar los datos que ha enviado Bob en datos_b (recv) y calcular 
-   * su clave compartida secreta 'alice' (ka).
+  /* Esta llamada se intentan descifrar los datos que ha enviado Bob en datosBob (recv) y calcular 
+   * su clave compartida 'cSesion' (ka).
    *
-   * Para ello, va a desencriptar el buffer 'datos_b' enviado por Bob, haciendo uso de la clave
+   * Para ello, va a desencriptar el buffer 'datosBob' enviado por Bob, haciendo uso de la clave
    * 'encript_a' y guardandolo en un buffer temporal. Tras ello, se copia la clave temporal (tk)
    * a la segunda mitad del buffer temporal (la primera parte ya esta ocupada con los datos desencriptados
    * anteriones).
    *
    * Finalmente se produce una derivacion de claves con las almacenadas en este buffer temporal obteniendo
-   * asi la clave de alice.
+   * asi la clave de alice 'cSesion'.
    * */
-  kex_uake_sharedA(Claves.alice, IDatos.datos_b, Claves.temporal, Claves.encript_a);
+  kex_uake_sharedA(Alice.cSesion, datosBob, temporal, encript_a);
    
   // Comprobar si las claves son validas
-  if(memcmp(Claves.alice, Claves.bob, KEX_SSBYTES))
-    printf("Error in UAKE");
+  if(memcmp(Alice.cSesion, Bob.cSesion, KEX_SSBYTES))
+    printf("Error in UAKE\n");
 
-  if(!memcmp(Claves.alice, zero, KEX_SSBYTES))
-    printf("Error: UAKE produces zero key");
+  if(!memcmp(Alice.cSesion, zero, KEX_SSBYTES))
+    printf("Error: UAKE produces zero key\n");
+
   return 0;
 }
 ```
