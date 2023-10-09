@@ -1,5 +1,12 @@
+#pragma once
+
 namespace Encryption {
   
+  #define ENC_BUFF_BYTES  1024    /* Bytes del buffer de encriptado */
+  #define ENC_EPER_BUFF   1       /* Bytes por elemento a encriptar */
+  #define ENC_EXTENSION   ".enc"  /* Extension temporal del archivo encriptado */
+  #define ENC_EXT_PADDING 5       /* Diferencia de chars entre el nombre del archivo y el encriptado */
+
   /* Encripta un string (cadena de caracteres)
    * 
    * @param text: Texto a encriptar.
@@ -8,16 +15,13 @@ namespace Encryption {
    * @param cipher: Puntero al array donde guardar el texto cifrado.
    *
    * @returns Devuelve la longitud del texto cifrado.
-   * */
-  int encryptStr(const unsigned char* text, const int text_len, const unsigned char* key, unsigned char* cipher);
+   * * */
+  int encryptStr(const unsigned char* text, const unsigned int text_len, const unsigned char* key, unsigned char* cipher);
 
   /* Encripta un archivo
    * 
    * @param path: Ruta del archivo a encriptar.
    * @param key: Clave simetrica a utilizar.
-   *
-   * @returns Devuelve 0 si la operacion se ha realizado correctamente 
-   * y 1 en caso contrario.
-   * */
-  int encryptFile(const unsigned char* path, unsigned char* key);
+   * * */
+  void encryptFile(const char* path, const unsigned char* key);
 }
