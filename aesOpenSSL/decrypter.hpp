@@ -1,11 +1,13 @@
 #pragma once
+#include <cstddef>
 
 namespace Decryption {
   
-  #define DEC_BUFF_BYTES  1024    /* Bytes del buffer de encriptado */
-  #define DEC_EPER_BUFF   1       /* Bytes por elemento a encriptar */
-  #define DEC_EXTENSION   ".dec"  /* Extension temporal del archivo encriptado */
-  #define DEC_EXT_PADDING 5       /* Diferencia de chars entre el nombre del archivo y el encriptado */
+  #define DEC_EPER_BUFF     1       /* Bytes por elemento a encriptar */
+  #define DEC_EXTENSION     ".dec"  /* Extension temporal del archivo encriptado */
+  #define DEC_EXT_PADDING   4       /* Diferencia de chars entre el nombre del archivo y el encriptado */
+  #define DEC_BUFF_BYTES    1024    /* Bytes del buffer de encriptado */
+  #define DEC_CIPHER_BYTES  DEC_BUFF_BYTES+(DEC_BUFF_BYTES>>1) /* Bytes del buffer de datos cifrados */
 
   /* Desencripta un string (cadena de caracteres)
    * 
@@ -16,7 +18,7 @@ namespace Decryption {
    *
    * @returns Devuelve la longitud del texto descifrado. 
    * * */
-  int decryptStr(const unsigned char *cipher, const unsigned int cipher_len, const unsigned char *key, unsigned char *text);
+  size_t decryptStr(const unsigned char *cipher, const unsigned int cipher_len, const unsigned char *key, unsigned char *text);
 
    /* Desencripta un archivo
    * 

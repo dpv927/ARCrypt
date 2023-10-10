@@ -6,7 +6,6 @@ namespace Encryption {
   #define ENC_EPER_BUFF     1       /* Bytes por elemento a encriptar */
   #define ENC_EXTENSION     ".enc"  /* Extension temporal del archivo encriptado */
   #define ENC_EXT_PADDING   4       /* Diferencia de chars entre el nombre del archivo y el encriptado */
-  #define ENC_EOF_STRING    1       /* Tamano en bytes del caracter '/0' (end of string) */  
   #define ENC_BUFF_BYTES    1024    /* Bytes del buffer de encriptado temporal */
   #define ENC_CIPHER_BYTES  ENC_BUFF_BYTES+(ENC_BUFF_BYTES>>1) /* Bytes del buffer de datos cifrados */
 
@@ -27,4 +26,6 @@ namespace Encryption {
    * @param key: Clave simetrica a utilizar.
    * * */
   void encryptFile(const char* path, const unsigned char* key);
+
+  void readfileBin(const char* path);
 }

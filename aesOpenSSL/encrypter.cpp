@@ -1,7 +1,6 @@
 #include <openssl/conf.h>
 #include <openssl/evp.h>
 #include <openssl/err.h>
-#include <cstddef>
 #include <cstring>
 #include <iostream>
 #include "encrypter.hpp"
@@ -50,7 +49,7 @@ namespace Encryption {
     size_t cipher_len;
   
     // Abrir archivo a encriptar
-    input = fopen(path, "r");
+    input = fopen(path, "rb");
     if(input == NULL) {
       Error("Error opening the input file")}
     
@@ -66,16 +65,7 @@ namespace Encryption {
 
     // Obtener 1024 bytes, encriptarlos y escribirlos en output
     while ((readBytes = fread(buffer, ENC_EPER_BUFF, sizeof(buffer), input)) > 0) {
-      cipher_len = encryptStr(buffer, readBytes-ENC_EOF_STRING, key, cipher_buffer);
-
-      std::cout<<"Encrypted: ";
-      for(int i =0; i<cipher_len; i++)
-        std::cout<<(int) cipher_buffer[i];
-
-      std::cout<<"\nNormal   : ";
-      for(int i =0; i<readBytes-ENC_EOF_STRING; i++)
-        std::cout<<(int) buffer[i];
-
+      cipher_len = encryptStr(buffer, readBytes, key, cipher_buffer);
       fwrite(cipher_buffer, ENC_EPER_BUFF, cipher_len, output);
     }
 
@@ -83,5 +73,24 @@ namespace Encryption {
     fclose(output);
     //remove(path);
     //rename(encr_name, path);
+  }
+
+  void readfileBin(const char* path) {
+    FILE* input;
+    unsigned char buffer[ENC_BUFF_BYTES];
+    size_t readBytes;
+
+    // Abrir archivo a encriptar
+    input = fopen(path, "rb");
+    if(input == NULL) {
+      Error("Error opening the input file")}
+    
+    // Obtener 1024 bytes, encriptarlos y escribirlos en output
+    while ((readBytes = fread(buffer, ENC_EPER_BUFF, sizeof(buffer), input)) > 0) {
+      for (int i = 0; i<readBytes; i++)
+        std::cout<<(int) buffer[i];
+      std::cout<<std::endl;
+    }
+    fclose(input);
   }
 }
