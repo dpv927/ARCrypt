@@ -1,7 +1,7 @@
-#include <algorithm>
 #include <openssl/conf.h>
 #include <openssl/evp.h>
 #include <openssl/err.h>
+#include <cstddef>
 #include <cstring>
 #include <iostream>
 #include "encrypter.hpp"
@@ -10,9 +10,9 @@
 
 namespace Encryption {
 
-  int encryptStr(const unsigned char *text, const unsigned int text_len, const unsigned char *key, unsigned char *cipher) {
+  size_t encryptStr(const unsigned char *text, const unsigned int text_len, const unsigned char *key, unsigned char *cipher) {
     EVP_CIPHER_CTX *ctx;  
-    int cipher_len = 0;
+    size_t cipher_len = 0;
     int len = 0;
 
     // Crear contexto de cifrado
@@ -45,9 +45,9 @@ namespace Encryption {
     FILE* output;
     char encr_name[strlen(path)+ENC_EXT_PADDING];
     unsigned char buffer[ENC_BUFF_BYTES];
-    unsigned char cipher_buffer[ENC_BUFF_BYTES];
+    unsigned char cipher_buffer[ENC_CIPHER_BYTES];
     size_t readBytes;
-    int cipher_len;
+    size_t cipher_len;
   
     // Abrir archivo a encriptar
     input = fopen(path, "r");
@@ -63,12 +63,19 @@ namespace Encryption {
     if(output == NULL) {
       fclose(input);
       Error("Error opening the output file")}
-    
-    std::cout<<"Starting Encryption..."<<std::endl;
+
     // Obtener 1024 bytes, encriptarlos y escribirlos en output
     while ((readBytes = fread(buffer, ENC_EPER_BUFF, sizeof(buffer), input)) > 0) {
-      std::cout<<"a";
-      cipher_len = encryptStr(buffer, readBytes, key, cipher_buffer);
+      cipher_len = encryptStr(buffer, readBytes-ENC_EOF_STRING, key, cipher_buffer);
+
+      std::cout<<"Encrypted: ";
+      for(int i =0; i<cipher_len; i++)
+        std::cout<<(int) cipher_buffer[i];
+
+      std::cout<<"\nNormal   : ";
+      for(int i =0; i<readBytes-ENC_EOF_STRING; i++)
+        std::cout<<(int) buffer[i];
+
       fwrite(cipher_buffer, ENC_EPER_BUFF, cipher_len, output);
     }
 
