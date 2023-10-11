@@ -1,7 +1,7 @@
-CC=g++
+CC=gcc
 CFLAGS=-Wall -Wextra -Ofast -march=native -mtune=native
 CEXTRAFLAGS=-lssl -lcrypto
-SRCS=main.cpp encrypter.cpp decrypter.cpp
+SRCS=main.c encryption.c decryption.c
 OBJS=$(SRCS:.c=.o)
 TARGET=aes
 
@@ -12,7 +12,6 @@ all: $(OBJS)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -rf *.o
-	rm -rf $(TARGET)
+	rm -rf $(OBJS) $(TARGET)
 
 .PHONY: clean
