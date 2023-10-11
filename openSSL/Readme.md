@@ -42,8 +42,8 @@ Esta prueba se recomienda debido a problemas potenciales de manejo de archivos d
 
 Para comprobar que efectivamente no hay errores, ejecuta los siguientes comandos para borrar el archivo "testfile.txt" y generar una versión de este mucho más pesada:
 ```bash
-rm sample.txt
-fallocate -l 50M sample.txt
+rm testfile.txt
+fallocate -l 50M testfile.txt
 ```
 
 Con esto se generara el archivo testfile.txt con un peso de 50Mb. Para correr el programa, simplemente ejecuta:
