@@ -1,5 +1,14 @@
+#include <math.h>
+#include <signal.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
+#include "aes128.h"
+
+enum Rounds {
+  Round01, Round02, Round03, Round04, Round05,
+  Round06, Round07, Round08, Round09, Round10,
+};
 
 static const uint8_t sbox[256] = {
   0x63, 0x7c, 0x77, 0x7b, 0xf2, 0x6b, 0x6f, 0xc5, 0x30, 0x01, 0x67, 0x2b, 0xfe, 0xd7, 0xab, 0x76,
@@ -39,17 +48,17 @@ static const uint8_t inv_sbox[256] = {
   0x17, 0x2b, 0x04, 0x7e, 0xba, 0x77, 0xd6, 0x26, 0xe1, 0x69, 0x14, 0x63, 0x55, 0x21, 0x0c, 0x7d 
 };
 
-static const uint8_t Rcon[][10] = {
-	[0] = {0x01, 0x00, 0x00, 0x00},
-  [1] = {0x02, 0x00, 0x00, 0x00},
-  [2] = {0x04, 0x00, 0x00, 0x00},
-  [3] = {0x08, 0x00, 0x00, 0x00},
-  [4] = {0x10, 0x00, 0x00, 0x00},
-  [5] = {0x20, 0x00, 0x00, 0x00},
-  [6] = {0x40, 0x00, 0x00, 0x00},
-  [7] = {0x80, 0x00, 0x00, 0x00},
-  [8] = {0x1b, 0x00, 0x00, 0x00},
-  [9] = {0x36, 0x00, 0x00, 0x00},
+static const uint8_t Rcon[][4] = {
+	[Round01] = {0x01, 0x00, 0x00, 0x00},
+  [Round02] = {0x02, 0x00, 0x00, 0x00},
+  [Round03] = {0x04, 0x00, 0x00, 0x00},
+  [Round04] = {0x08, 0x00, 0x00, 0x00},
+  [Round05] = {0x10, 0x00, 0x00, 0x00},
+  [Round06] = {0x20, 0x00, 0x00, 0x00},
+  [Round07] = {0x40, 0x00, 0x00, 0x00},
+  [Round08] = {0x80, 0x00, 0x00, 0x00},
+  [Round09] = {0x1b, 0x00, 0x00, 0x00},
+  [Round10] = {0x36, 0x00, 0x00, 0x00}
 };
 
 void initialize_aes_sbox(uint8_t sbox[256]) {
@@ -95,52 +104,131 @@ static void aes128_subBytes(uint8_t block[16]) {
   block[15] = sbox[block[15]];
 }
 
-static void aes128_shiftRows() {
-  
+static void aes128_shiftRows(uint8_t block[16]) {
+  uint8_t tmp;
+
+  /* Shift 1 row */
+  tmp = block[1];
+  block[1] = block[5];
+  block[5] = block[9];
+  block[9] = block[13];
+  block[13] = tmp;
+
+  /* Shift 2 rows */
+  tmp = block[2];
+  block[2] = block[10];
+  block[10] = tmp;
+  tmp = block[6];
+  block[6] = block[14];
+  block[14] = tmp;
+
+  /* Shift 3 rows */
+  tmp = block[15];
+  block[15] = block[11];
+  block[11] = block[7];
+  block[7] = block[3];
+  block[3] = tmp;
 }
 
-static void mixColumns() {
-
+static void aes128_mixColumns(uint8_t block[16]) {
+  
 }
 
 static void aes128_addRoundKey(uint8_t block[16], uint8_t key[16]){
-    block[0] ^= key[0];
-    block[1] ^= key[1];
-    block[2] ^= key[2];
-    block[3] ^= key[3];
-    block[4] ^= key[4];
-    block[5] ^= key[5];
-    block[6] ^= key[6];
-    block[7] ^= key[7];
-    block[8] ^= key[8];
-    block[9] ^= key[9];
-    block[10] ^= key[10];
-    block[11] ^= key[11];
-    block[12] ^= key[12];
-    block[13] ^= key[13];
-    block[14] ^= key[14];
-    block[15] ^= key[15];
+  block[0] ^= key[0];
+  block[1] ^= key[1];
+  block[2] ^= key[2];
+  block[3] ^= key[3];
+  block[4] ^= key[4];
+  block[5] ^= key[5];
+  block[6] ^= key[6];
+  block[7] ^= key[7];
+  block[8] ^= key[8];
+  block[9] ^= key[9];
+  block[10] ^= key[10];
+  block[11] ^= key[11];
+  block[12] ^= key[12];
+  block[13] ^= key[13];
+  block[14] ^= key[14];
+  block[15] ^= key[15];
 }
 
-static void aes128_expandKey(uint8_t block[16]) {
+static void aes128_expandKey(uint8_t key[16], uint8_t round) {
+  /* Aplicar g() a la cuarta columna */
+  uint8_t gword[4];
+  memcpy(gword, key+12, sizeof(uint8_t)*4);
+  aes128_g(gword, round);
+
+  /* Generar la primera palabra: 
+   * w5 = XOR(g(w4),w1) */
+  key[0] ^= gword[0];
+  key[1] ^= gword[1];
+  key[2] ^= gword[2];
+  key[3] ^= gword[3];
   
+  /* Genrar la segunda palabra:
+   * w6 = XOR(w5,w2) */
+  key[4] = key[0] ^ key[4];
+  key[5] = key[1] ^ key[5];
+  key[6] = key[2] ^ key[6];
+  key[7] = key[3] ^ key[7];
+
+  /* Genrar la tercera palabra:
+   * w7 = XOR(w6,w3) */
+  key[8] = key[4] ^ key[8];
+  key[9] = key[5] ^ key[9];
+  key[10] = key[6] ^ key[10];
+  key[11] = key[7] ^ key[11];
+
+  /* Genrar la cuarta palabra:
+   * w8 = XOR(w7,w4) */
+  key[12] = key[8] ^ key[12];
+  key[13] = key[9] ^ key[13];
+  key[14] = key[10] ^ key[14];
+  key[15] = key[11] ^ key[15];
 }
 
-static void aes128_g(uint8_t word[4]) {
+static void aes128_g(uint8_t word[4], uint8_t round) {
+  // Rotword() -> 1 vez
+  uint8_t tmp = word[0];
+  word[0] = word[1];
+  word[1] = word[2];
+  word[2] = word[3];
+  word[3] = tmp;
 
+  // SubWord() 
+  word[0] = sbox[word[0]];
+  word[1] = sbox[word[1]];
+  word[2] = sbox[word[2]];
+  word[3] = sbox[word[3]];
+
+  // Xor con Rcon[]
+  word[0] ^= Rcon[round][0];
+  word[1] ^= Rcon[round][1];
+  word[2] ^= Rcon[round][2];
+  word[3] ^= Rcon[round][3];
 }
 
-static void aes128_encrypt(uint8_t block[16], uint8_t key[16]) {
+static void aes128_encrypt(uint8_t block[16], const uint8_t key[16]) {
+  uint8_t roundKey[16];
+  memcpy(roundKey, key, sizeof(uint8_t)*16);
+
   /* El primer paso es hacer XOR entre block y key */
-  aes128_addRoundKey(block, key);
+  aes128_addRoundKey(block, roundKey);
 
   /* Hacer las 10 rondas */
-  for (uint8_t round=0; round<10; round++){
+  for (uint8_t round=Round01; round<=Round10; round++){
+    aes128_subBytes(block);
+    aes128_shiftRows(block);
+    aes128_mixColumns(block);
     
+    if(round != Round10) {
+      aes128_expandKey(roundKey, round);
+      aes128_addRoundKey(block, roundKey);
+    } 
   }
 }
 
 int main(void) {
-
   return 0;
 }
