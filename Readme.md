@@ -1,8 +1,9 @@
 # kayberc
 
 ## Contenidos
-- <a href="https://github.com/dpv927/kayberc/tree/main/openSSL">Encriptacion de archivos con AES de OpenSSL</a>
-- <a href="https://github.com/dpv927/kayberc/tree/main/libs">Libreria de Kayber</a>
+- <a href="https://github.com/dpv927/kayberc/tree/main/openSSL">Mi implementacion de encriptacion de archivos con AES de OpenSSL</a>
+- <a href="https://github.com/dpv927/kayberc/tree/main/aes">Mi implementacion de AES128</a>
+- <a href="https://github.com/dpv927/kayberc/tree/main/libs">Libreria de Kayber (copiada de kyber/ref)</a>
 - <a href="https://github.com/dpv927/kayberc/tree/main/docs">Mi documentación</a>
 
 ## Referencias
@@ -10,6 +11,8 @@
 - <a href="https://csrc.nist.gov/files/pubs/fips/197/final/docs/fips-197.pdf"> Especificaciones de AES por el NIST</a>
 - <a href="https://es.wikipedia.org/wiki/Advanced_Encryption_Standard">AES en Wikipedia</a>
 - <a href="https://www.geeksforgeeks.org/advanced-encryption-standard-aes/">AES en GeeksforGeeks</a>
+- <a href="https://www.youtube.com/watch?v=NHuibtoL_qk">Video de funcionamiento interno AES</a>
+- <a href="https://www.youtube.com/watch?v=w4aWIVhcUyo&t=1918s">Video expansion de claves AES</a>
 
 **Kyber**
 - <a href="https://pq-crystals.org/kyber/">Pagina oficial de Kyber</a>
