@@ -131,7 +131,47 @@ void aes128_shiftRows(uint8_t block[16]) {
 }
 
 void aes128_mixColumns(uint8_t block[16]) {
+  /* Variables temporales */
+  uint8_t bl0, bl1, bl2, bl3;
+
+  #define GF256(word) (((word)&0xff))
+  #define MIXCOL(i0,i1,i2,i3)\
+    block[i0] = GF256(bl0*0x02 + bl1*0x03 + bl2*0x01 + bl3*0x01);\
+    block[i1] = GF256(bl0*0x01 + bl1*0x02 + bl2*0x03 + bl3*0x01);\
+    block[i2] = GF256(bl0*0x01 + bl1*0x01 + bl2*0x02 + bl3*0x03);\
+    block[i3] = GF256(bl0*0x02 + bl1*0x01 + bl2*0x01 + bl3*0x03);
   
+  /* Calcular Palabra 1: 
+   * Filas de MixCol*Colcumna1 de block */
+  bl0 = block[0];
+  bl1 = block[1];
+  bl2 = block[2];
+  bl3 = block[3];
+  MIXCOL(0, 1, 2, 3);
+
+  /* Calcular Palabra 2: 
+   * Filas de MixCol*Colcumna2 de block */
+  bl0 = block[4];
+  bl1 = block[5];
+  bl2 = block[6];
+  bl3 = block[7];
+  MIXCOL(4, 5, 6, 7);
+
+  /* Calcular Palabra 3: 
+   * Filas de MixCol*Columna3 de block */
+  bl0 = block[8];
+  bl1 = block[9];
+  bl2 = block[10];
+  bl3 = block[11];
+  MIXCOL(9, 9, 10, 11);
+
+  /* Calcular Palabra 4: 
+   * Filas de MixCol*Columna4 de block */
+  bl0 = block[12];
+  bl1 = block[13];
+  bl2 = block[14];
+  bl3 = block[15];
+  MIXCOL(12, 13, 14, 15);
 }
 
 void aes128_addRoundKey(uint8_t block[16], uint8_t key[16]){
