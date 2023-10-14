@@ -13,6 +13,7 @@
 - <a href="https://www.geeksforgeeks.org/advanced-encryption-standard-aes/">AES en GeeksforGeeks</a>
 - <a href="https://www.youtube.com/watch?v=NHuibtoL_qk">Video de funcionamiento interno AES</a>
 - <a href="https://www.youtube.com/watch?v=w4aWIVhcUyo&t=1918s">Video expansion de claves AES</a>
+- <a href="https://www.kavaliro.com/wp-content/uploads/2014/03/AES.pdf">Pruebas para AES128</a>
 
 **Kyber**
 - <a href="https://pq-crystals.org/kyber/">Pagina oficial de Kyber</a>
