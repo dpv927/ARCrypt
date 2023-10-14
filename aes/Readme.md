@@ -15,3 +15,15 @@ make && ./aes128
 ```
 
 Los resultados esperados de las pruebas se encuentran en <a href="https://www.kavaliro.com/wp-content/uploads/2014/03/AES.pdf">este documento</a>.
+
+## Debug
+Puedes activar/desactivar el modo debug si cambias el valor del macro `DEBUG` de la linea 6 de `aes128.c`:
+```c
+#define DEBUG 1 /* Debug activado */
+#define DEBUG 0 /* Debug desactivado */
+```
+
+Despues debes compilar el codigo:
+```bash
+make && ./aes128
+```
