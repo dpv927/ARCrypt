@@ -2,8 +2,7 @@
 
 ## Introduccion
 
-AES es un encriptador de bloques de 128 bits independientemente del tamano de la clave. Usa claves de 128, 192 o 256 bits. La salida de la encriptacion
-sera tambien un bloque de 128 bits.
+AES es un encriptador de bloques de 128 bits, independientemente del tamaño de la clave. Usa claves de 128, 192 o 256 bits, y la salida de la encriptación también será un bloque de 128 bits.
 
 <div align="center">
   <img src="https://github.com/dpv927/kayberc/assets/113710742/4bd1fa96-a681-45da-a293-c3117cd3c85c">
@@ -31,13 +30,12 @@ Para AES, los bloques de 128 bits se representarán como una matriz 4x4 de la si
 3) MixColumns
 4) Key Addition
 
-ByteSubstitution provee confusion, mientras que Shiftrows y MixColumns proveen difusion, lo que en conjunto genera una mayor seguiridad a la hora
-de encriptar un bloque.
+ByteSubstitution provee confusión, mientras que ShiftRows y MixColumns proveen difusión, lo que en conjunto genera una mayor seguridad a la hora de encriptar un bloque.
 
 > [!NOTE]
-> En la ultima ronda, la capa MixColumns no se realiza, ya que esta comprobado que no surte efecto en el resultado final.
+> En la última ronda, la capa MixColumns no se realiza, ya que está comprobado que no surte efecto en el resultado final.
 
-Las capas 1,2,3,4 en conjunto se consideran una roda. Diferentes tamanos de clave necesitan numeros de rondas diferentes:
+Las capas 1, 2, 3 y 4 en conjunto se consideran una ronda. Diferentes tamaños de clave necesitan números de rondas diferentes:
 - Para clave de 128 bits: 10 rondas.
 - Para clave de 192 bits: 12 rondas.
 - Para clave de 256 bits: 14 rondas.
@@ -48,9 +46,7 @@ Las capas 1,2,3,4 en conjunto se consideran una roda. Diferentes tamanos de clav
 
 ### Byte Substitution
 
-La operacion se describe como S(Ai) = Bi. Esto significa que cada bit del bloque se sustituye por su correspondiente de una tabla estatica llamada
-'S-box'. Para saber en que posicion de la tabla se encuentra el elemento a sustituir, debemos dividir cada byte en dos digitos hexadecimales y 
-buscar en la tabla la fila que indique el primer digito y la columna que indique el segundo.
+La operación se describe como S(Ai) = Bi. Esto significa que cada bit del bloque se sustituye por su correspondiente en una tabla estática llamada 'S-box'. Para saber en qué posición de la tabla se encuentra el elemento a sustituir, debemos dividir cada byte en dos dígitos hexadecimales y buscar en la tabla la fila que indique el primer dígito y la columna que indique el segundo.
 
 Por ejemplo, para Ai = C2:
 ```
@@ -406,8 +402,7 @@ La tabla S-box es la siguiente:
 
 ### Shiftrows
 
-Esta capa lo unico que hace es desplazar los bytes de la matriz hacia la izquierda. La primera fila no se desplaza, la segunda se desplaza 1 byte,
-la tercera 2, y la ultima 3. Por ejemplo para el siguiente bloque:
+Esta capa lo único que hace es desplazar los bytes de la matriz hacia la izquierda. La primera fila no se desplaza, la segunda se desplaza 1 byte, la tercera 2, y la última 3. Por ejemplo, para el siguiente bloque:
 
 | | | | |
 | --- | --- | --- | --- |
@@ -433,21 +428,18 @@ En este caso deberemos multiplicar cada columna de la matriz que representa un b
 
 ### Key Addition
 
-En todas las rondas se genera una clave derivada de la clave de la ronda anterior, haciendo una operacion XOR entre la sub-clave y el bloque.
-Para generar las subclaves, se inicia un proceso llamado 'Expansion de claves', el cual sigue el siguiente procedimiento:
+En todas las rondas se genera una clave derivada de la clave de la ronda anterior, haciendo una operación XOR entre la subclave y el bloque. Para generar las subclaves, se inicia un proceso llamado 'Expansión de claves', el cual sigue el siguiente procedimiento:
 
 ![imagen](https://github.com/dpv927/kayberc/assets/113710742/1dc05598-67f1-4e53-b8db-8006ccc66752)
 
-Se aplica la funcion g() a la palabra w4 que contiene los bytes (b12,b13,b14,b15) y el resultado se le aplica la operacion XOR con la palabbra 
-w1 que contiene los bytes (b0,b1,b2,b3), generando la palabra w5. Para generar w6, se aplica XOR(w5,w2), para w7 se aplica XOR(w6,w3), y asi
-sucesivamente.
+Se aplica la función g() a la palabra w4, que contiene los bytes (b12, b13, b14, b15), y el resultado se le aplica la operación XOR con la palabra w1, que contiene los bytes (b0, b1, b2, b3), generando la palabra w5. Para generar w6, se aplica XOR(w5, w2), para w7 se aplica XOR(w6, w3), y así sucesivamente.
 
 #### La funcion g()
 
-La funcion g toma como argumento una 32 bits, 4 bytes. Tiene tres pasos:
-- Se aplica una rotacion de 1 byte. Ej: para una palabra (b0,b1,b2,b3), tendremos el resultado (b1,b2,b3,b4).
-- Se aplica una substitucion de cada byte por su correspondiente en la tabla S-Box.
-- Se aplica una operacion XOR con una constante almacenada en un array llamado Rcon[]. La palabra cambiara dependiendo de ronda.
+La función g toma como argumento una palabra de 32 bits, 4 bytes. Tiene tres pasos:
+- Se aplica una rotación de 1 bit. Ejemplo: para una palabra (b0, b1, b2, b3), tendríamos el resultado (b1, b2, b3, b0).
+- Se aplica una sustitución de cada byte por su correspondiente en la tabla S-Box.
+- Se aplica una operación XOR con una constante almacenada en un array llamado Rcon[]. La palabra cambiará dependiendo de la ronda.
 
 
 
