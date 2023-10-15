@@ -6,7 +6,7 @@ En este directorio encontrarás una implementación de un algoritmo capaz de enc
 
 <br>
 
-## Pruebas por defecto.
+## Pruebas por defecto
 
 Para probar el programa, debes compilarlo y ejecutarlo de la siguiente manera:
 ```c
