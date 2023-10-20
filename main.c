@@ -2,8 +2,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <libgen.h>
-#include <openssl/rand.h>
 #include "openSSL/encryption.h"
 #include "openSSL/decryption.h"
 

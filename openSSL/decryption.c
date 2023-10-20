@@ -26,10 +26,6 @@ void decryptFile(const char* inputFile, const char* keyFile, const unsigned char
   fread(key, sizeof(unsigned char), 16, input);
   fclose(input);
 
-  for (int i=0; i<16; i++) {
-    printf("%d ", (int)key[i]);
-  }
-  
   /* Iniciar contexto de desencriptacion */
   ctx = EVP_CIPHER_CTX_new();   
   EVP_DecryptInit_ex(ctx, AES_ALGORITHM, NULL, key, iv);

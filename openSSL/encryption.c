@@ -25,11 +25,6 @@ void encryptFile(const char* inputFile, const unsigned char* iv) {
     exit(EXIT_FAILURE);
   }
 
-    for (int i=0; i<16; i++) {
-    printf("%d ", (int)key[i]);
-    }
-
-
   ctx = EVP_CIPHER_CTX_new();  
   EVP_EncryptInit_ex(ctx, AES_ALGORITHM, NULL, key, iv);
     
