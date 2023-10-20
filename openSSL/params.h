@@ -1,6 +1,6 @@
 #pragma once
 
-#define MOD_NAME 1
+#define MOD_NAME 3
 #define MOD_BITS 256
 
 /* Usar ECB como modo */
