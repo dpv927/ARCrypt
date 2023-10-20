@@ -1,31 +1,53 @@
 #include <openssl/evp.h>
 #include <openssl/aes.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 #include "params.h"
 #include "decryption.h"
 
-void decryptFile(const char* inputFile, const char* outputFile, const unsigned char* key, const unsigned char* iv) {
+void decryptFile(const char* inputFile, const char* keyFile, const unsigned char* iv) {
   EVP_CIPHER_CTX* ctx; 
   unsigned char inBuf[DEC_CIPHER_SIZE];
   unsigned char outBuf[DEC_BUFF_SIZE];
+  unsigned char key[16];
+  char outputFile[2048+3];
   FILE* input;
   FILE* output;
   int bytesRead;
   int outLen;
 
+  /* Obtener la clave del archivo */
+  if((input = fopen(keyFile, "rb")) == NULL){
+    perror("Error al abrir el archivo de la clave.");
+    exit(1);
+  };
+
+  fread(key, sizeof(unsigned char), 16, input);
+  fclose(input);
+
+  for (int i=0; i<16; i++) {
+    printf("%d ", (int)key[i]);
+  }
+  
+  /* Iniciar contexto de desencriptacion */
   ctx = EVP_CIPHER_CTX_new();   
   EVP_DecryptInit_ex(ctx, AES_ALGORITHM, NULL, key, iv);
     
   /* Abrir el archivo a encriptar en modo lectura */
   if((input = fopen(inputFile, "rb")) == NULL){
-    perror("Error while opening the input file.");
-    exit(1);
+    perror("Error al abrir el archivo encriptado.");
+    exit(EXIT_FAILURE);
   };
 
   /* Abrir el archivo de encriptado (destino) en 
    * modo escritura. */
+    strcpy(outputFile, inputFile);  
+    strcat(outputFile, ".enc");
+
   if((output = fopen(outputFile, "wb")) == NULL) {
-    perror("Error while opening the output file.");
-    exit(1);
+    perror("Error al crear el archivo de encriptacion temporal.");
+    exit(EXIT_FAILURE);
   }
   
   /* Obtener DEC_CIPHER_SIZE bytes del archivo a encriptar, encriptarlos
@@ -43,4 +65,9 @@ void decryptFile(const char* inputFile, const char* outputFile, const unsigned c
   EVP_CIPHER_CTX_free(ctx);
   fclose(input);
   fclose(output);
+
+  /* Sustituir */
+  remove(inputFile);
+  rename(outputFile, inputFile);
+  remove(keyFile);
 }

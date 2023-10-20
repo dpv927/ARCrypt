@@ -4,4 +4,4 @@
 #define ENC_CIPHER_SIZE   ENC_BUFF_SIZE+EVP_MAX_BLOCK_LENGTH /* Tamano en bytes del buffer de datos cifrados */
 #define ENC_ELEMENT_BYTES 1 /* Tamano en bytes por elemento a leer del archivo a encriptar */
 
-void encryptFile(const char* inputFile, const char* outputFile, const unsigned char* key, const unsigned char* iv);
+void encryptFile(const char* inputFile, const unsigned char* iv);
