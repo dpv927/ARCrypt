@@ -1,6 +1,7 @@
 CC=gcc
 CFLAGS=-Wall -Wextra -Ofast -march=native -mtune=native
-CEXTRAFLAGS=-lssl -lcrypto
+#CEXTRAFLAGS=-lssl -lcrypto
+CEXTRAFLAGS=-lcrypto
 SRCS=main.c ./openSSL/encryption.c ./openSSL/decryption.c
 OBJS=$(SRCS:.c=.o)
 TARGET=aes
