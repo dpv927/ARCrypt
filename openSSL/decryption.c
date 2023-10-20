@@ -10,8 +10,8 @@ void decryptFile(const char* inputFile, const char* keyFile, const unsigned char
   EVP_CIPHER_CTX* ctx; 
   unsigned char inBuf[DEC_CIPHER_SIZE];
   unsigned char outBuf[DEC_BUFF_SIZE];
-  unsigned char key[16];
-  char outputFile[2048+3];
+  unsigned char key[KEY_BYTES];
+  char outputFile[FILE_PATH_BYTES+4];
   FILE* input;
   FILE* output;
   int bytesRead;
@@ -23,7 +23,7 @@ void decryptFile(const char* inputFile, const char* keyFile, const unsigned char
     exit(1);
   };
 
-  fread(key, sizeof(unsigned char), 16, input);
+  fread(key, sizeof(unsigned char), KEY_BYTES, input);
   fclose(input);
 
   /* Iniciar contexto de desencriptacion */

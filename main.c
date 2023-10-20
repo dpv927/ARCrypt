@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "openSSL/params.h"
 #include "openSSL/encryption.h"
 #include "openSSL/decryption.h"
 
@@ -12,8 +13,8 @@
 /* Datos necesarios */
 typedef struct {
     uint8_t mode;
-    char file_path[2048];
-    char key_path[2048];
+    char file_path[FILE_PATH_BYTES];
+    char key_path[FILE_PATH_BYTES];
 } OperationData;
 
 /* Funciones de ontencion de datos */

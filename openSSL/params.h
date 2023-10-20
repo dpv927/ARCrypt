@@ -1,7 +1,17 @@
 #pragma once
 
+#define FILE_PATH_BYTES 2048
 #define MOD_NAME 3
 #define MOD_BITS 256
+
+/* Bytes de la clave */
+#if(MOD_BITS==128)
+    #define KEY_BYTES 16
+#elif(MOD_BITS==192)
+    #define KEY_BYTES 24
+#elif(MOD_BITS==256)
+    #define KEY_BYTES 32
+#endif
 
 /* Usar ECB como modo */
 #if(MOD_NAME==0)

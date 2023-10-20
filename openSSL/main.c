@@ -4,7 +4,7 @@
 
 /* Si quieres probar a desencriptar, cambia
  * el modo a 1. */
-#define TEST_MODE 1
+#define TEST_MODE 0
 
 #if(MOD_NAME!=0)
 /* A 128 bit IV */

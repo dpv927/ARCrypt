@@ -12,8 +12,8 @@ void encryptFile(const char* inputFile, const unsigned char* iv) {
   EVP_CIPHER_CTX* ctx;
   unsigned char inBuf[ENC_BUFF_SIZE];
   unsigned char outBuf[ENC_CIPHER_SIZE];
-  unsigned char key[16];
-  char outputFile[2048+3];
+  unsigned char key[KEY_BYTES];
+  char outputFile[FILE_PATH_BYTES+4];
   FILE* input;
   FILE* output;
   int bytesRead;
@@ -77,6 +77,6 @@ void encryptFile(const char* inputFile, const unsigned char* iv) {
     exit(EXIT_FAILURE);
   }
 
-  fwrite(key, sizeof(unsigned char), 16, output);
+  fwrite(key, sizeof(unsigned char), KEY_BYTES, output);
   fclose(output);
 }
