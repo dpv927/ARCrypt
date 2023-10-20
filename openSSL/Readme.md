@@ -13,7 +13,8 @@ Para probar el programa, debes compilarlo y ejecutarlo de la siguiente manera:
 make && ./aes
 ```
 > [!NOTE]
-> El ejecutable generado se llamará "aes". Este programa encriptará y desencriptará el archivo de texto "testfile.txt", el cual se encuentra en el mismo directorio de las pruebas, generando los archivos "encrypted.txt" y "decrypted.txt".
+> El ejecutable generado se llamará "aes". Este programa puede encriptar y desencriptar el archivo de texto "testfile.txt",
+> el cual se encuentra en el mismo directorio de las pruebas, generando "key.txt" y el propio "testfile.txt" modifocado.
 
 <br>
 
@@ -22,14 +23,12 @@ make && ./aes
 Para encriptar archivos personalizados, debes modificar las definiciones de los macros que se encuentran en la siguiente sección de "main.c":
 ```c
 #define processed_file  "testfile.txt"
-#define encrypted_file  "encrypted.txt" 
-#define decrypted_file  "decrypted.txt"
+#define key_file        "encrypted.txt" # No modificar! 
 ```
 
-El significado de los archivos generados es:
+El significado de los archivo generados es:
 - **processed_file**: Archivo a encriptar.
-- **encrypted_file**: Archivo con el contenido encriptado de 'processed_file'.
-- **decrypted_file**: Archivo con el contenido desencriptado de 'encrypted_file'.
+- **key_file**: Archivo donde se va a guardar la clave generada.
 
 > [!NOTE]
 > Se recomienda encriptar y desencriptar imágenes de cualquier tipo para comprobar que el resultado de la desencriptación sea satisfactorio. Esto se debe a que incluso un cambio mínimo en el binario de una imagen puede corromperla y esto es fácil de comprobar.
