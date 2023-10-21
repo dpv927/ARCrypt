@@ -1,5 +1,21 @@
 # kayberc
 
+## Clonar y utilizar
+
+Para probar el programa, primero clona el repositorio donde quieras, y despues ejecuta make en el mismo repositorio:
+
+```bash
+git clone https://github.com/dpv927/kayberc.git
+cd kayberc && make
+```
+
+Puede que necesites instalar openSSL en tu máquina:
+
+```bash
+sudo apt-get install openssl
+```
+
+
 ## Contenidos
 - <a href="https://github.com/dpv927/kayberc/tree/main/openSSL">Mi implementacion de encriptacion de archivos con AES de OpenSSL</a>
 - <a href="https://github.com/dpv927/kayberc/tree/main/docs/aes128">Mi implementacion de AES128</a>
