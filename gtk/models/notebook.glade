@@ -25,25 +25,13 @@
                 <property name="can-focus">False</property>
                 <property name="label" translatable="yes">NOTA</property>
                 <attributes>
-                  <attribute name="weight" value="bold"/>
+                  <attribute name="weight" value="ultrabold"/>
+                  <attribute name="underline" value="True"/>
                 </attributes>
               </object>
               <packing>
-                <property name="x">260</property>
+                <property name="x">245</property>
                 <property name="y">15</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkLevelBar">
-                <property name="name">enc_level</property>
-                <property name="width-request">513</property>
-                <property name="height-request">84</property>
-                <property name="visible">True</property>
-                <property name="can-focus">False</property>
-              </object>
-              <packing>
-                <property name="x">10</property>
-                <property name="y">9</property>
               </packing>
             </child>
             <child>
@@ -53,14 +41,16 @@
                 <property name="height-request">80</property>
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
-                <property name="label" translatable="yes">
- Para poder encriptar un archivo, necesitas la ruta. Una vez se finalize el 
+                <property name="label" translatable="yes"> Para poder encriptar un archivo, necesitas la ruta. Una vez se finalize el 
 proceso de encriptacion, la clave AES se generará en el mismo directorio
 					    que  el archivo a encriptar.</property>
+                <attributes>
+                  <attribute name="style" value="italic"/>
+                </attributes>
               </object>
               <packing>
-                <property name="x">75</property>
-                <property name="y">16</property>
+                <property name="x">70</property>
+                <property name="y">20</property>
               </packing>
             </child>
             <child>
@@ -82,39 +72,26 @@ proceso de encriptacion, la clave AES se generará en el mismo directorio
                 <property name="name">enc_label2</property>
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
-                <property name="label" translatable="yes">Ruta del archivo:</property>
+                <property name="label" translatable="yes">Ruta del archivo a encriptar:</property>
                 <attributes>
                   <attribute name="weight" value="bold"/>
                 </attributes>
               </object>
               <packing>
-                <property name="x">10</property>
-                <property name="y">130</property>
+                <property name="x">194</property>
+                <property name="y">137</property>
               </packing>
             </child>
             <child>
-              <object class="GtkEntry">
-                <property name="name">enc_input</property>
-                <property name="width-request">285</property>
+              <object class="GtkFileChooserButton" id="enc_selector">
+                <property name="width-request">196</property>
                 <property name="visible">True</property>
-                <property name="can-focus">True</property>
+                <property name="can-focus">False</property>
+                <property name="title" translatable="yes"/>
               </object>
               <packing>
-                <property name="x">118</property>
-                <property name="y">120</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkButton">
-                <property name="label" translatable="yes">Buscar archivo</property>
-                <property name="name">enc_button0</property>
-                <property name="visible">True</property>
-                <property name="can-focus">True</property>
-                <property name="receives-default">True</property>
-              </object>
-              <packing>
-                <property name="x">412</property>
-                <property name="y">120</property>
+                <property name="x">178</property>
+                <property name="y">164</property>
               </packing>
             </child>
           </object>
@@ -143,31 +120,8 @@ proceso de encriptacion, la clave AES se generará en el mismo directorio
                 </attributes>
               </object>
               <packing>
-                <property name="x">10</property>
+                <property name="x">30</property>
                 <property name="y">130</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkEntry" id="dec_entry1">
-                <property name="width-request">196</property>
-                <property name="visible">True</property>
-                <property name="can-focus">True</property>
-              </object>
-              <packing>
-                <property name="x">203</property>
-                <property name="y">121</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkButton" id="dec_button1">
-                <property name="label" translatable="yes">Buscar archivo</property>
-                <property name="visible">True</property>
-                <property name="can-focus">True</property>
-                <property name="receives-default">True</property>
-              </object>
-              <packing>
-                <property name="x">412</property>
-                <property name="y">121</property>
               </packing>
             </child>
             <child>
@@ -176,14 +130,16 @@ proceso de encriptacion, la clave AES se generará en el mismo directorio
                 <property name="height-request">96</property>
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
-                <property name="label" translatable="yes">
-Para desncriptar un archivo necesitas la ruta del archivo y la ruta de la clave
+                <property name="label" translatable="yes">Para desencriptar un archivo necesitas la ruta del archivo y la ruta de la clave
      con la que se encriptó del archivo. Si intentas desencriptar un archivo no 
                                   encriptado, lo perderás para siempre.</property>
+                <attributes>
+                  <attribute name="style" value="italic"/>
+                </attributes>
               </object>
               <packing>
-                <property name="x">73</property>
-                <property name="y">8</property>
+                <property name="x">60</property>
+                <property name="y">15</property>
               </packing>
             </child>
             <child>
@@ -193,23 +149,12 @@ Para desncriptar un archivo necesitas la ruta del archivo y la ruta de la clave
                 <property name="label" translatable="yes">NOTA</property>
                 <attributes>
                   <attribute name="weight" value="ultrabold"/>
+                  <attribute name="underline" value="True"/>
                 </attributes>
               </object>
               <packing>
-                <property name="x">260</property>
+                <property name="x">245</property>
                 <property name="y">15</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkLevelBar" id="dec_level">
-                <property name="width-request">513</property>
-                <property name="height-request">84</property>
-                <property name="visible">True</property>
-                <property name="can-focus">False</property>
-              </object>
-              <packing>
-                <property name="x">10</property>
-                <property name="y">9</property>
               </packing>
             </child>
             <child>
@@ -222,31 +167,8 @@ Para desncriptar un archivo necesitas la ruta del archivo y la ruta de la clave
                 </attributes>
               </object>
               <packing>
-                <property name="x">74</property>
+                <property name="x">94</property>
                 <property name="y">198</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkEntry" id="dec_entry2">
-                <property name="width-request">196</property>
-                <property name="visible">True</property>
-                <property name="can-focus">True</property>
-              </object>
-              <packing>
-                <property name="x">203</property>
-                <property name="y">188</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkButton" id="dec_button2">
-                <property name="label" translatable="yes">Buscar archivo</property>
-                <property name="visible">True</property>
-                <property name="can-focus">True</property>
-                <property name="receives-default">True</property>
-              </object>
-              <packing>
-                <property name="x">412</property>
-                <property name="y">188</property>
               </packing>
             </child>
             <child>
@@ -260,6 +182,30 @@ Para desncriptar un archivo necesitas la ruta del archivo y la ruta de la clave
               <packing>
                 <property name="x">10</property>
                 <property name="y">252</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkFileChooserButton">
+                <property name="width-request">196</property>
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="title" translatable="yes"/>
+              </object>
+              <packing>
+                <property name="x">223</property>
+                <property name="y">121</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkFileChooserButton">
+                <property name="width-request">196</property>
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="title" translatable="yes"/>
+              </object>
+              <packing>
+                <property name="x">223</property>
+                <property name="y">189</property>
               </packing>
             </child>
           </object>

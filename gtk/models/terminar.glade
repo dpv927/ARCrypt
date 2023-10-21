@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Generated with glade 3.40.0 -->
+<interface>
+  <requires lib="gtk+" version="3.24"/>
+  <object class="GtkWindow" id="window">
+    <property name="can-focus">False</property>
+    <property name="title" translatable="yes">AES Encryption</property>
+    <property name="default-width">400</property>
+    <property name="default-height">120</property>
+    <child>
+      <object class="GtkFixed">
+        <property name="visible">True</property>
+        <property name="can-focus">False</property>
+        <child>
+          <object class="GtkLabel" id="label0">
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <property name="label" translatable="yes">La operación se ha completado correctamente.</property>
+          </object>
+          <packing>
+            <property name="x">80</property>
+            <property name="y">20</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkButton" id="button0">
+            <property name="label" translatable="yes">Terminar</property>
+            <property name="related-action"/>
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="receives-default">True</property>
+          </object>
+          <packing>
+            <property name="x">160</property>
+            <property name="y">70</property>
+          </packing>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>
