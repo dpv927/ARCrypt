@@ -7,7 +7,7 @@
 - libgtk-3-0 
 - libgtk-3-doc
 - build-essential
-- build-dep inkscape
+- pkg-config
 
 Instala con:
 
