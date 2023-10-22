@@ -1,5 +1,11 @@
 # kayberc
 
+## Dependencias
+Si quieres compilar el programa, deberas instalar los siguientes paquetes:
+- gcc
+- make
+- libssl-dev
+
 ## Clonar y utilizar
 
 Para probar el programa, primero clona el repositorio donde quieras, y despues ejecuta make en el mismo repositorio:
@@ -14,7 +20,6 @@ Puede que necesites instalar openSSL en tu máquina:
 ```bash
 sudo apt-get install openssl
 ```
-
 
 ## Contenidos
 - <a href="https://github.com/dpv927/kayberc/tree/main/openSSL">Mi implementacion de encriptacion de archivos con AES de OpenSSL</a>
