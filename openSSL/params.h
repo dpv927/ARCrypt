@@ -1,7 +1,7 @@
 #pragma once
 
 #define FILE_PATH_BYTES 2048
-#define MOD_NAME 3
+#define MOD_NAME 1
 #define MOD_BITS 256
 
 /* Bytes de la clave */
