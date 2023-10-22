@@ -12,7 +12,7 @@
 Instala con:
 
 ```bash
-sudo apt-get install libgtk-3-0 libgtk-3-doc build-essential build-dep inkscape
+sudo apt-get install libgtk-3-0 libgtk-3-doc build-essential pkg-config
 ```
 
 ### Archlinux
