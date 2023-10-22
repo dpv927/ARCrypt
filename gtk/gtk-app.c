@@ -9,7 +9,7 @@ int main(int argc, char *argv[]) {
     builder = gtk_builder_new();
     
     /* Obtener la ventana del archivo XML */
-    gtk_builder_add_from_file(builder, "./models/notebook2.glade", NULL);
+    gtk_builder_add_from_file(builder, "./models/notebook.glade", NULL);
     window = GTK_WIDGET(gtk_builder_get_object(builder, "window"));
     g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
     gtk_widget_show_all(window);
