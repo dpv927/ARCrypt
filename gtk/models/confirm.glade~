@@ -7,7 +7,7 @@
     <property name="title" translatable="yes">AES Encryption</property>
     <property name="resizable">False</property>
     <property name="modal">True</property>
-    <property name="default-width">420</property>
+    <property name="default-width">400</property>
     <property name="default-height">115</property>
     <property name="destroy-with-parent">True</property>
     <property name="icon-name">dialog-information</property>
@@ -48,7 +48,7 @@
             <property name="receives-default">True</property>
           </object>
           <packing>
-            <property name="x">210</property>
+            <property name="x">228</property>
             <property name="y">70</property>
           </packing>
         </child>

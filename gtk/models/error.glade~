@@ -18,7 +18,7 @@
             <property name="label" translatable="yes">Ha habido un fallo en la ejecución  inesperado.</property>
           </object>
           <packing>
-            <property name="x">45</property>
+            <property name="x">85</property>
             <property name="y">20</property>
           </packing>
         </child>

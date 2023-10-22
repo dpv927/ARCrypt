@@ -30,7 +30,7 @@
                 </attributes>
               </object>
               <packing>
-                <property name="x">235</property>
+                <property name="x">245</property>
                 <property name="y">15</property>
               </packing>
             </child>
@@ -49,22 +49,22 @@ proceso de encriptacion, la clave AES se generará en el mismo directorio
                 </attributes>
               </object>
               <packing>
-                <property name="x">45</property>
-                <property name="y">30</property>
+                <property name="x">70</property>
+                <property name="y">20</property>
               </packing>
             </child>
             <child>
               <object class="GtkButton">
                 <property name="label" translatable="yes">Confirmar Operación</property>
                 <property name="name">enc_button1</property>
-                <property name="width-request">495</property>
+                <property name="width-request">512</property>
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
                 <property name="receives-default">True</property>
               </object>
               <packing>
-                <property name="x">20</property>
-                <property name="y">240</property>
+                <property name="x">10</property>
+                <property name="y">252</property>
               </packing>
             </child>
             <child>
@@ -78,7 +78,7 @@ proceso de encriptacion, la clave AES se generará en el mismo directorio
                 </attributes>
               </object>
               <packing>
-                <property name="x">165</property>
+                <property name="x">194</property>
                 <property name="y">137</property>
               </packing>
             </child>
@@ -90,7 +90,7 @@ proceso de encriptacion, la clave AES se generará en el mismo directorio
                 <property name="title" translatable="yes"/>
               </object>
               <packing>
-                <property name="x">160</property>
+                <property name="x">178</property>
                 <property name="y">164</property>
               </packing>
             </child>
@@ -138,8 +138,8 @@ proceso de encriptacion, la clave AES se generará en el mismo directorio
                 </attributes>
               </object>
               <packing>
-                <property name="x">20</property>
-                <property name="y">20</property>
+                <property name="x">60</property>
+                <property name="y">15</property>
               </packing>
             </child>
             <child>
@@ -167,21 +167,21 @@ proceso de encriptacion, la clave AES se generará en el mismo directorio
                 </attributes>
               </object>
               <packing>
-                <property name="x">105</property>
-                <property name="y">185</property>
+                <property name="x">94</property>
+                <property name="y">198</property>
               </packing>
             </child>
             <child>
               <object class="GtkButton" id="dec_button3">
                 <property name="label" translatable="yes">Confirmar Operación</property>
-                <property name="width-request">490</property>
+                <property name="width-request">512</property>
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
                 <property name="receives-default">True</property>
               </object>
               <packing>
-                <property name="x">20</property>
-                <property name="y">235</property>
+                <property name="x">10</property>
+                <property name="y">252</property>
               </packing>
             </child>
             <child>
@@ -192,7 +192,7 @@ proceso de encriptacion, la clave AES se generará en el mismo directorio
                 <property name="title" translatable="yes"/>
               </object>
               <packing>
-                <property name="x">260</property>
+                <property name="x">223</property>
                 <property name="y">121</property>
               </packing>
             </child>
@@ -204,8 +204,8 @@ proceso de encriptacion, la clave AES se generará en el mismo directorio
                 <property name="title" translatable="yes"/>
               </object>
               <packing>
-                <property name="x">260</property>
-                <property name="y">175</property>
+                <property name="x">223</property>
+                <property name="y">189</property>
               </packing>
             </child>
           </object>
