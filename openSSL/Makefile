@@ -1,16 +1,15 @@
 CC=gcc
 CFLAGS=-Wall -Wextra -Ofast -march=native -mtune=native
-CEXTRALIBS=-I /usr/include/openssl
-CEXTRAFLAGS=-lssl -lcrypto
 SRCS=main.c encryption.c decryption.c
 OBJS=$(SRCS:.c=.o)
 TARGET=aes
 
-all: $(OBJS)
-	$(CC) $(CFLAGS) $(CEXTRAFLAGS) $(OBJS) -o $(TARGET) $(CEXTRALIBS)
+# --- Flags OpenSSL ---
+OPENSSLLIBS=-I /usr/include/openssl
+OPENSSLFLAGS=-lssl -lcrypto
 
-%.o: %.
-	$(CC) $(CFLAGS) -c $< -o $@
+all: $(OBJS)
+	$(CC) $(OPENSSLLIBS) $(OBJS) -o $(TARGET) $(OPENSSLFLAGS)
 
 clean:
 	rm -rf $(OBJS) $(TARGET)
