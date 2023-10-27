@@ -18,7 +18,7 @@ cd kayberc && make
 Puede que necesites instalar openSSL en tu máquina:
 
 ```bash
-sudo apt-get install openssl
+sudo apt-get install openssl libssl-dev
 ```
 
 ## Contenidos
