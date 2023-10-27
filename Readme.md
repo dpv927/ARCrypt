@@ -11,14 +11,15 @@ Si quieres compilar el programa, deberas instalar los siguientes paquetes:
 Para probar el programa, primero clona el repositorio donde quieras, y despues ejecuta make en el mismo repositorio:
 
 ```bash
+# Clona el repositorio
 git clone https://github.com/dpv927/kayberc.git
-cd kayberc && make
-```
 
-Puede que necesites instalar openSSL en tu máquina:
+# Instala las librerias de kyber
+cd kayber 
+sudo cp -r kyber/*.so /usr/lib
 
-```bash
-sudo apt-get install openssl libssl-dev
+# Prueba a compilar
+make
 ```
 
 ## Contenidos
