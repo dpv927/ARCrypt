@@ -20,10 +20,6 @@ LIBS = -L$(LIB_PATH) -lpqcrystals_kyber1024_ref -lpqcrystals_fips202_ref
 all: $(OBJS)
 	$(CC) $(OPENSSLLIBS) $(OBJS) -o $(TARGET) $(OPENSSLFLAGS)
 
-
-%.o: %.
-	$(CC) $(CFLAGS) -c $< -o $@
-
 clean:
 	rm -rf $(OBJS) $(TARGET)
 
