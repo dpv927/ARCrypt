@@ -1,6 +1,7 @@
 #include <openssl/evp.h>
 #include <openssl/aes.h>
 #include <openssl/rand.h>
+#include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -14,10 +15,19 @@ void encryptFile(const char* inputFile, const unsigned char* iv) {
   unsigned char outBuf[ENC_CIPHER_SIZE];
   unsigned char key[KEY_BYTES];
   char outputFile[FILE_PATH_BYTES+4];
+  char* dir_name;
   FILE* input;
   FILE* output;
   int bytesRead;
   int outLen;
+
+  /* Ver si el usuario tiene permisos de lectura/escritura sobre el directorio en
+  * el que se encuentra el archivo a encriptar. */
+  dir_name = dirname((char*) inputFile);
+  if (access(dir_name, W_OK | X_OK | R_OK)) {
+    perror("Error: No tienes los permisos de lectura/escritura necesarios.");
+    exit(EXIT_FAILURE);
+  }
 
   /* Generar la clave */
   if (RAND_bytes(key, sizeof(key)) != 1) {
@@ -65,8 +75,7 @@ void encryptFile(const char* inputFile, const unsigned char* iv) {
   rename(outputFile, inputFile);
 
   /* Crear archivo con la clave */
-  char *dname = dirname((char*) inputFile);
-  strcpy(outputFile, dname);
+  strcpy(outputFile, dir_name);
 
   if(!strcmp(outputFile, "."))
     strcat(outputFile, "/key.txt");

@@ -1,5 +1,7 @@
 #include <openssl/evp.h>
 #include <openssl/aes.h>
+#include <libgen.h>
+#include <unistd.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -12,10 +14,19 @@ void decryptFile(const char* inputFile, const char* keyFile, const unsigned char
   unsigned char outBuf[DEC_BUFF_SIZE];
   unsigned char key[KEY_BYTES];
   char outputFile[FILE_PATH_BYTES+4];
+  char* dir_name;
   FILE* input;
   FILE* output;
   int bytesRead;
   int outLen;
+
+  /* Ver si el usuario tiene permisos de lectura/escritura sobre el directorio en
+  * el que se encuentra el archivo a encriptar. */
+  dir_name = dirname((char*) inputFile);
+  if (access(dir_name, W_OK | X_OK | R_OK)) {
+    perror("Error: No tienes los permisos de lectura/escritura necesarios.");
+    exit(EXIT_FAILURE);
+  }
 
   /* Obtener la clave del archivo */
   if((input = fopen(keyFile, "rb")) == NULL){
