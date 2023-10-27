@@ -16,6 +16,9 @@
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <property name="label" translatable="yes">La operación se ha completado correctamente.</property>
+            <attributes>
+              <attribute name="font-desc" value="Sans 10"/>
+            </attributes>
           </object>
           <packing>
             <property name="x">80</property>

@@ -16,9 +16,12 @@
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <property name="label" translatable="yes">Ha habido un fallo en la ejecución  inesperado.</property>
+            <attributes>
+              <attribute name="font-desc" value="Sans 10"/>
+            </attributes>
           </object>
           <packing>
-            <property name="x">45</property>
+            <property name="x">50</property>
             <property name="y">20</property>
           </packing>
         </child>
