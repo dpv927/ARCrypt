@@ -75,6 +75,7 @@ que  el archivo a encriptar.</property>
             <child>
               <object class="GtkLabel">
                 <property name="name">enc_label2</property>
+                <property name="width-request">200</property>
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
                 <property name="label" translatable="yes">Ruta del archivo a encriptar:</property>
@@ -88,7 +89,7 @@ que  el archivo a encriptar.</property>
                 </attributes>
               </object>
               <packing>
-                <property name="x">169</property>
+                <property name="x">165</property>
                 <property name="y">137</property>
               </packing>
             </child>
@@ -123,9 +124,11 @@ que  el archivo a encriptar.</property>
             <property name="can-focus">False</property>
             <child>
               <object class="GtkLabel" id="dec_label2">
+                <property name="width-request">200</property>
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
                 <property name="label" translatable="yes">Ruta del archivo a desencriptar: </property>
+                <property name="justify">right</property>
                 <attributes>
                   <attribute name="font-desc" value="Sans 10"/>
                   <attribute name="weight" value="bold"/>
@@ -174,16 +177,18 @@ encriptado, lo perderás para siempre.</property>
             </child>
             <child>
               <object class="GtkLabel" id="dec_label3">
+                <property name="width-request">200</property>
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
                 <property name="label" translatable="yes">Ruta de la clave AES:</property>
+                <property name="xalign">1</property>
                 <attributes>
                   <attribute name="font-desc" value="Sans 10"/>
                   <attribute name="weight" value="bold"/>
                 </attributes>
               </object>
               <packing>
-                <property name="x">127</property>
+                <property name="x">49</property>
                 <property name="y">185</property>
               </packing>
             </child>
