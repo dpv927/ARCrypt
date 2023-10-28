@@ -1,5 +1,6 @@
 #include <openssl/evp.h>
 #include <openssl/aes.h>
+#include <sys/stat.h>
 #include <libgen.h>
 #include <unistd.h>
 #include <stdio.h>
@@ -14,11 +15,22 @@ void decryptFile(const char* inputFile, const char* keyFile, const unsigned char
   unsigned char outBuf[DEC_BUFF_SIZE];
   unsigned char key[KEY_BYTES];
   char outputFile[FILE_PATH_BYTES+4];
+  struct stat inode_info;
   char* dir_name;
   FILE* input;
   FILE* output;
   int bytesRead;
   int outLen;
+
+  /* Comprobar informacion basica */
+  if(stat(inputFile, &inode_info)) {
+    perror("Error: No se puede acceder o no existe el fichero.");
+    exit(EXIT_FAILURE);
+  } if((inode_info.st_mode & S_IFMT) == S_IFDIR) {
+    perror("Error: La encriptacion de carpetas no esta soportada. "\
+    "Comprime dicha carpeta para asi obtener un archivo.");
+    exit(EXIT_FAILURE);
+  }
 
   /* Ver si el usuario tiene permisos de lectura/escritura sobre el directorio en
   * el que se encuentra el archivo a encriptar. */
