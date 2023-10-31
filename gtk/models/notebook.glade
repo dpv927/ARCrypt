@@ -15,11 +15,11 @@
         <property name="can-focus">True</property>
         <property name="resize-mode">immediate</property>
         <child>
-          <object class="GtkFixed" id="grid">
+          <object class="GtkFixed" id="enc_grid">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <child>
-              <object class="GtkLabel">
+              <object class="GtkLabel" id="enc_title">
                 <property name="name">enc_label0</property>
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
@@ -36,7 +36,7 @@
               </packing>
             </child>
             <child>
-              <object class="GtkLabel">
+              <object class="GtkLabel" id="enc_info">
                 <property name="name">enc_label1</property>
                 <property name="width-request">430</property>
                 <property name="height-request">80</property>
@@ -58,7 +58,7 @@ que  el archivo a encriptar.</property>
               </packing>
             </child>
             <child>
-              <object class="GtkButton">
+              <object class="GtkButton" id="enc_button">
                 <property name="label" translatable="yes">Confirmar Operación</property>
                 <property name="name">enc_button1</property>
                 <property name="width-request">495</property>
@@ -73,7 +73,7 @@ que  el archivo a encriptar.</property>
               </packing>
             </child>
             <child>
-              <object class="GtkLabel">
+              <object class="GtkLabel" id="enc_button_label">
                 <property name="name">enc_label2</property>
                 <property name="width-request">200</property>
                 <property name="visible">True</property>
@@ -109,7 +109,7 @@ que  el archivo a encriptar.</property>
           </object>
         </child>
         <child type="tab">
-          <object class="GtkLabel" id="label1">
+          <object class="GtkLabel" id="enc_label">
             <property name="visible">True</property>
             <property name="can-focus">True</property>
             <property name="label" translatable="yes">Encriptado</property>
@@ -119,11 +119,11 @@ que  el archivo a encriptar.</property>
           </packing>
         </child>
         <child>
-          <object class="GtkFixed">
+          <object class="GtkFixed" id="dec_grid">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <child>
-              <object class="GtkLabel" id="dec_label2">
+              <object class="GtkLabel" id="dec_button_label0">
                 <property name="width-request">200</property>
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
@@ -141,7 +141,7 @@ que  el archivo a encriptar.</property>
               </packing>
             </child>
             <child>
-              <object class="GtkLabel" id="dec_label1">
+              <object class="GtkLabel" id="dec_info">
                 <property name="width-request">450</property>
                 <property name="height-request">96</property>
                 <property name="visible">True</property>
@@ -161,7 +161,7 @@ encriptado, lo perderás para siempre.</property>
               </packing>
             </child>
             <child>
-              <object class="GtkLabel" id="dec_label0">
+              <object class="GtkLabel" id="dec_title">
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
                 <property name="label" translatable="yes">NOTA</property>
@@ -177,7 +177,7 @@ encriptado, lo perderás para siempre.</property>
               </packing>
             </child>
             <child>
-              <object class="GtkLabel" id="dec_label3">
+              <object class="GtkLabel" id="dec_button_label1">
                 <property name="width-request">200</property>
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
@@ -194,7 +194,7 @@ encriptado, lo perderás para siempre.</property>
               </packing>
             </child>
             <child>
-              <object class="GtkButton" id="dec_button3">
+              <object class="GtkButton" id="dec_button">
                 <property name="label" translatable="yes">Confirmar Operación</property>
                 <property name="width-request">495</property>
                 <property name="height-request">34</property>
@@ -208,7 +208,7 @@ encriptado, lo perderás para siempre.</property>
               </packing>
             </child>
             <child>
-              <object class="GtkFileChooserButton">
+              <object class="GtkFileChooserButton" id="dec_selector0">
                 <property name="width-request">196</property>
                 <property name="height-request">34</property>
                 <property name="visible">True</property>
@@ -221,7 +221,7 @@ encriptado, lo perderás para siempre.</property>
               </packing>
             </child>
             <child>
-              <object class="GtkFileChooserButton">
+              <object class="GtkFileChooserButton" id="enc_selector1">
                 <property name="width-request">196</property>
                 <property name="height-request">34</property>
                 <property name="visible">True</property>
@@ -239,7 +239,7 @@ encriptado, lo perderás para siempre.</property>
           </packing>
         </child>
         <child type="tab">
-          <object class="GtkLabel" id="label2">
+          <object class="GtkLabel" id="dec_label">
             <property name="visible">True</property>
             <property name="can-focus">True</property>
             <property name="label" translatable="yes">Desencriptado</property>
