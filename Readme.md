@@ -16,8 +16,8 @@ git clone https://github.com/dpv927/kayberc.git
 
 # Instala las librerias de kyber
 cd kayber 
-sudo cp -r kyber/*.so /usr/lib/
-sudo cp -r kyber/kyber_api.h /usr/include/
+sudo cp -r libs/*.so /usr/lib/
+sudo cp -r libs/kyber_api.h /usr/include/
 
 # Prueba a compilar
 make
