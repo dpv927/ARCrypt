@@ -23,9 +23,6 @@
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <property name="label" translatable="yes">¿Estás seguro de que quieres continuar?</property>
-            <attributes>
-              <attribute name="font-desc" value="Sans 10"/>
-            </attributes>
           </object>
           <packing>
             <property name="x">20</property>

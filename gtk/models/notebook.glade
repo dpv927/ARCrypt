@@ -27,7 +27,6 @@
                 <property name="can-focus">False</property>
                 <property name="label" translatable="yes">NOTA</property>
                 <attributes>
-                  <attribute name="font-desc" value="Sans 11"/>
                   <attribute name="weight" value="ultrabold"/>
                   <attribute name="underline" value="True"/>
                 </attributes>
@@ -45,12 +44,11 @@
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
                 <property name="label" translatable="yes"> Para poder encriptar un archivo, necesitas la ruta. Una vez se finalize el 
-proceso de encriptacion, la clave AES se generará en el mismo directorio
-que  el archivo a encriptar.</property>
+proceso de encriptacion, la clave AES se generará en el 
+mismo directorio que  el archivo a encriptar.</property>
                 <property name="justify">center</property>
                 <property name="wrap">True</property>
                 <attributes>
-                  <attribute name="font-desc" value="Sans 10"/>
                   <attribute name="style" value="italic"/>
                 </attributes>
               </object>
@@ -84,7 +82,6 @@ que  el archivo a encriptar.</property>
                 <property name="label" translatable="yes">Ruta del archivo a encriptar:</property>
                 <property name="justify">center</property>
                 <attributes>
-                  <attribute name="font-desc" value="Sans 10"/>
                   <attribute name="style" value="normal"/>
                   <attribute name="weight" value="bold"/>
                   <attribute name="variant" value="normal"/>
@@ -134,7 +131,6 @@ que  el archivo a encriptar.</property>
                 <property name="justify">right</property>
                 <property name="xalign">1</property>
                 <attributes>
-                  <attribute name="font-desc" value="Sans 10"/>
                   <attribute name="weight" value="bold"/>
                 </attributes>
               </object>
@@ -154,7 +150,6 @@ con la que se encriptó del archivo. Si intentas desencriptar un archivo no
 encriptado, lo perderás para siempre.</property>
                 <property name="justify">center</property>
                 <attributes>
-                  <attribute name="font-desc" value="Sans 10"/>
                   <attribute name="style" value="italic"/>
                 </attributes>
               </object>
@@ -169,7 +164,6 @@ encriptado, lo perderás para siempre.</property>
                 <property name="can-focus">False</property>
                 <property name="label" translatable="yes">NOTA</property>
                 <attributes>
-                  <attribute name="font-desc" value="Sans 11"/>
                   <attribute name="weight" value="ultrabold"/>
                   <attribute name="underline" value="True"/>
                 </attributes>
@@ -187,7 +181,6 @@ encriptado, lo perderás para siempre.</property>
                 <property name="label" translatable="yes">Ruta de la clave AES:</property>
                 <property name="xalign">1</property>
                 <attributes>
-                  <attribute name="font-desc" value="Sans 10"/>
                   <attribute name="weight" value="bold"/>
                 </attributes>
               </object>
