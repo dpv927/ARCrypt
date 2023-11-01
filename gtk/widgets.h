@@ -1,5 +1,4 @@
 #pragma once_
-#include <gtk/gtk.h>
 
 /* Widget a obtener de archivos */
 #define WIDGET_NAME "window"

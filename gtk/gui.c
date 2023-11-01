@@ -1,6 +1,7 @@
 #include <gtk/gtk.h>
 #include <stdio.h>
-#include "windows.h"
+#include "widgets.h"
+#include "dialogs.h"
 
 /* Files (paths) */
 static char* enc_selected_file = NULL;
@@ -40,7 +41,7 @@ void on_enc_file_selected(GtkFileChooserButton* chooser, gpointer p) {
 	 * no se produzcan entradas nulas. Hay que activarlo. */
 	GtkWidget *target_button = GTK_WIDGET(p);
 	gtk_widget_set_sensitive(target_button, TRUE);
-			
+					
 	#ifdef MODULE_DEBUG
 	printf("Se ha seleccionado un nuevo archivo a ecriptar (%s)\n",
 		enc_selected_file);

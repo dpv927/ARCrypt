@@ -1,11 +1,16 @@
 #include <gtk/gtk.h>
 #include <stdio.h>
-#include "main_window.h"
+#include "gui.h"
+#include "dialogs.h"
 
 void enc_fn(GtkButton *button, gpointer user_data) { 
 	printf("Esta funcion podria encriptar.\n");
 	char* enc_path = get_enc_selected_file(); 
 	if(enc_path) printf("La ruta seria: %s\n", enc_path);
+	
+	create_confirmation_dialog();
+	int response = get_confirm_dialog_response();
+	printf("response: %d\n", response);
 }
 
 void dec_fn(GtkButton *button, gpointer user_data) { 
@@ -15,6 +20,10 @@ void dec_fn(GtkButton *button, gpointer user_data) {
 	
 	if(dec_path) printf("La ruta seria: %s\n", dec_path);
 	if(key_path) printf("La clave seria: %s\n", key_path);
+	
+	create_confirmation_dialog();
+	int response = get_confirm_dialog_response();
+	printf("response: %d\n", response);
 }
 
 int main(int argc, char *argv[]) {
