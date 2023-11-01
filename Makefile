@@ -18,7 +18,7 @@ OPENSSLFLAGS=-lssl -lcrypto
 #KYBER_LIBS = -lpqcrystals_kyber1024-90s_ref -lpqcrystals_fips202_ref -lpqcrystals_aes256ctr_ref -lpqcrystals_sha2_ref
 
 # --- Librerias y flags de GTK
-GTK_EXTRA := $(shell pkg-config --cflags --libs gtk+-3.0)
+#GTK_EXTRA := $(shell pkg-config --cflags --libs gtk+-3.0)
 
 # --- Opciones de compilacion
 all: term gui
