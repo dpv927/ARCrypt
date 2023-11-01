@@ -5,7 +5,7 @@
 /* Files (paths) */
 static char* enc_selected_file = NULL;
 static char* dec_selected_file = NULL;
-static char* dec_selected_key 	= NULL;
+static char* dec_selected_key  = NULL;
 
 /* Exec to get the file to encrypt */
 char* get_enc_selected_file(void) {
@@ -35,7 +35,16 @@ void on_enc_file_selected(GtkFileChooserButton* chooser, gpointer p) {
 	
 	enc_selected_file = gtk_file_chooser_get_filename(
 		GTK_FILE_CHOOSER(chooser));
-	printf("File path: %s\n", enc_selected_file);
+	
+	/* El boton de encriptado esta desactivado por defecto para que
+	 * no se produzcan entradas nulas. Hay que activarlo. */
+	GtkWidget *target_button = GTK_WIDGET(p);
+	gtk_widget_set_sensitive(target_button, TRUE);
+			
+	#ifdef MODULE_DEBUG
+	printf("Se ha seleccionado un nuevo archivo a ecriptar (%s)\n",
+		enc_selected_file);
+	#endif
 }
 
 /* Exec to get selected file to decrypt -> Chooser updated*/
@@ -44,8 +53,19 @@ void on_dec_file_selected(GtkFileChooserButton* chooser, gpointer p) {
 	
 	dec_selected_file = gtk_file_chooser_get_filename(
 		GTK_FILE_CHOOSER(chooser));
-	printf("File path: %s\n", enc_selected_file);
-
+		
+	/* El boton de desencriptado esta desactivado por defecto para que
+	 * no se produzcan entradas nulas. Hay que activarlo en caso de que
+	 * el valor de la ruta de la clave AES no sea nulo. */
+	if(dec_selected_key) {
+		GtkWidget *target_button = GTK_WIDGET(p);
+		gtk_widget_set_sensitive(target_button, TRUE);
+	}
+		
+	#ifdef MODULE_DEBUG
+	printf("Se ha seleccionado un nuevo archivo a desencriptar (%s)\n",
+		enc_selected_file);
+	#endif
 }
 
 /* Exec to get selected AES key file at decrypt -> Chooser updated*/
@@ -54,13 +74,27 @@ void on_dec_key_selected(GtkFileChooserButton* chooser, gpointer p) {
 	
 	dec_selected_key = gtk_file_chooser_get_filename(
 		GTK_FILE_CHOOSER(chooser));
-	printf("File path: %s\n", enc_selected_file);
+		
+	/* El boton de desencriptado esta desactivado por defecto para que
+	 * no se produzcan entradas nulas. Hay que activarlo en caso de que
+	 * el valor de la ruta de la clave AES no sea nulo. */
+	if(dec_selected_file) {
+		GtkWidget *target_button = GTK_WIDGET(p);
+		gtk_widget_set_sensitive(target_button, TRUE);
+	}
+
+	#ifdef MODULE_DEBUG
+	printf("Se ha seleccionado una nueva clave AES (%s)\n",
+		enc_selected_file);
+	#endif
 }
 
 void on_window_delete_event(GtkWidget *widget, GdkEvent *event, 
 	gpointer user_data) {
     gtk_main_quit();
-    printf("El programa ha finalizado\n");
+    #ifdef MODULE_DEBUG
+    printf("El programa ha finalizado con exito.\n");
+    #endif
 }
 
 /* Exec to initialize main window propierties */
@@ -106,11 +140,11 @@ GtkWidget* create_main_window(void(*enc_func)(GtkButton* b, gpointer p),
     
     // Asignar funciones a ejecutar al update de los fileChooser
     g_signal_connect(enc_file_selector, "file-set", G_CALLBACK(
-		on_enc_file_selected), NULL);
+		on_enc_file_selected), enc_button);
 	g_signal_connect(dec_file_selector, "file-set", G_CALLBACK(
-		on_dec_file_selected), NULL);
+		on_dec_file_selected), dec_button);
 	g_signal_connect(dec_key_selector, "file-set", G_CALLBACK(
-		on_dec_key_selected), NULL);
+		on_dec_key_selected), dec_button);
     
     g_object_unref(builder);
     return window;

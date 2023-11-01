@@ -1,6 +1,6 @@
 CC=gcc
 CFLAGS=-Ofast -march=native -mtune=native
-SRCS=gtk-app.c windows.c main_window.c
+SRCS=gtk-app.c main_window.c
 TARGET=gtk-window
 GTK_EXTRA := $(shell pkg-config --cflags --libs gtk+-3.0)
 

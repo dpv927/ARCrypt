@@ -20,8 +20,3 @@ static const char* win_paths[5] = {
 	[FINISH_WIN]   = "models/finish.glade",
 	[PROGRESS_WIN] = "models/progress.glade"
 };
-
-/* @brief Crea una ventana del tipo que se especifica.
- * @returns puntero a la ventana creada.
- * */
-GtkWidget* create_window(enum WindowType type);

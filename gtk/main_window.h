@@ -33,4 +33,3 @@ void free_paths(void);
  * * * * */
  GtkWidget* create_main_window(void(*enc_func)(GtkButton* b, gpointer p),
 	void(*dec_func)(GtkButton* b, gpointer p));
- 
