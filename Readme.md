@@ -15,7 +15,7 @@ Para probar el programa, primero clona el repositorio donde quieras, y despues e
 git clone https://github.com/dpv927/kayberc.git
 
 # Instala las librerias de kyber
-cd kayber 
+cd kayberc 
 sudo cp -r libs/*.so /usr/lib/
 sudo cp -r libs/kyber_api.h /usr/include/
 
