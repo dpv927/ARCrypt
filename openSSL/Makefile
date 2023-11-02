@@ -1,8 +1,8 @@
 CC=gcc
 CFLAGS=-Wall -Wextra -Ofast -march=native -mtune=native
-SRCS=main.c encryption.c decryption.c
+SRCS=./pruebasOpenssl.c encryption.c decryption.c
 OBJS=$(SRCS:.c=.o)
-TARGET=aes
+TARGET=pruebas
 
 # --- Flags OpenSSL ---
 OPENSSLLIBS=-I /usr/include/openssl
