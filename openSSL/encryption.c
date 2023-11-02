@@ -15,6 +15,7 @@ void encryptFile(const char* inputFile, const unsigned char* iv) {
   unsigned char inBuf[ENC_BUFF_SIZE];
   unsigned char outBuf[ENC_CIPHER_SIZE];
   unsigned char key[KEY_BYTES];
+  char input_file_cpy[FILE_PATH_BYTES];
   char outputFile[FILE_PATH_BYTES+4];
   struct stat inode_info;
   char* dir_name;
@@ -35,7 +36,8 @@ void encryptFile(const char* inputFile, const unsigned char* iv) {
 
   /* Ver si el usuario tiene permisos de lectura/escritura sobre el directorio en
   * el que se encuentra el archivo a encriptar. */
-  dir_name = dirname((char*) inputFile);
+  strcpy(input_file_cpy, inputFile);
+  dir_name = dirname((char*) input_file_cpy);
   if (access(dir_name, W_OK | X_OK | R_OK)) {
     perror("Error: No tienes los permisos de lectura/escritura necesarios.");
     exit(EXIT_FAILURE);
@@ -88,13 +90,11 @@ void encryptFile(const char* inputFile, const unsigned char* iv) {
 
   /* Crear archivo con la clave */
   strcpy(outputFile, dir_name);
-  if(!strcmp(outputFile, "."))
-    strcat(outputFile, "/"); 
-  
-  strcat(outputFile,basename((char*)inputFile));
+  strcat(outputFile, "/");
+  strcat(outputFile, basename((char*)inputFile));
   strcat(outputFile, ".key");
 
-  /* Generar el archivo con la clave */
+  //* Generar el archivo con la clave 
   if((output = fopen(outputFile, "wb")) == NULL) {
     perror("Error: No se pudo crear el archivo de la clave.");
     exit(EXIT_FAILURE);
