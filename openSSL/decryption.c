@@ -15,6 +15,7 @@ void decryptFile(const char* inputFile, const char* keyFile, const unsigned char
   unsigned char outBuf[DEC_BUFF_SIZE];
   unsigned char key[KEY_BYTES];
   char outputFile[FILE_PATH_BYTES+4];
+  char input_file_cpy[FILE_PATH_BYTES];
   struct stat inode_info;
   char* dir_name;
   FILE* input;
@@ -34,7 +35,8 @@ void decryptFile(const char* inputFile, const char* keyFile, const unsigned char
 
   /* Ver si el usuario tiene permisos de lectura/escritura sobre el directorio en
   * el que se encuentra el archivo a encriptar. */
-  dir_name = dirname((char*) inputFile);
+  strcpy(input_file_cpy, inputFile);
+  dir_name = dirname((char*) input_file_cpy);
   if (access(dir_name, W_OK | X_OK | R_OK)) {
     perror("Error: No tienes los permisos de lectura/escritura necesarios.");
     exit(EXIT_FAILURE);
