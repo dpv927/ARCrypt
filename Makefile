@@ -1,8 +1,11 @@
 CC=gcc
-CFLAGS=-Wall -Wextra -Ofast -march=native -mtune=native
-SRCS=main.c ./openSSL/encryption.c ./openSSL/decryption.c
-OBJS=$(SRCS:.c=.o)
-TARGET=aes
+CFLAGS=-Ofast -march=native -mtune=native
+
+# --- Archivos a compilar
+OPENSSL_SRCS = ./openSSL/encryption.c ./openSSL/decryption.c
+GUI_SRCS = gui_mode.c ./gtk/dialogs.c ./gtk/gui.c
+TERM_SRCS = term_mode.c 
+TARGET_TERM=aes
 TARGET_GUI=aes-gui
 
 # --- Flags OpenSSL ---
@@ -18,20 +21,22 @@ OPENSSLFLAGS=-lssl -lcrypto
 #KYBER_LIBS = -lpqcrystals_kyber1024-90s_ref -lpqcrystals_fips202_ref -lpqcrystals_aes256ctr_ref -lpqcrystals_sha2_ref
 
 # --- Librerias y flags de GTK
-#GTK_EXTRA := $(shell pkg-config --cflags --libs gtk+-3.0)
+GTK_EXTRA := $(shell pkg-config --cflags --libs gtk+-3.0)
 
 # --- Opciones de compilacion
 all: term gui
 
-term: $(OBJS) # Compilar solo la version de terminal
-	$(CC) $(OPENSSLLIBS) $(OBJS) -o $(TARGET) $(OPENSSLFLAGS) $(KYBER_LIBS)
+term: 
+	$(CC) $(OPENSSLLIBS) main.c $(OPENSSL_SRCS) $(TERM_SRCS) -o $(TARGET_TERM) $(OPENSSLFLAGS) $(CFLAGS)
 
-gui: $(OBJS) # Compilar solo la version con gui de GTK
-	$(CC) $(OPENSSLLIBS) $(OBJS) -o $(TARGET_GUI) $(OPENSSLFLAGS) $(KYBER_LIBS) $(GTK_EXTRA) -DGTK_GUI
+gui: 
+	$(CC) $(OPENSSLLIBS) main.c $(OPENSSL_SRCS) $(GUI_SRCS) -o $(TARGET_GUI) $(OPENSSLFLAGS) $(GTK_EXTRA) $(CFLAGS) -DGTK_GUI
 
 clean:
-	rm -rf $(OBJS)\
-		$(TARGET)\
-		$(TARGET_GUI)
+	rm -rf *.o
+	rm -rf ./openSSL/*.o
+	rm -rf ./gtk/*.o
+	rm -rf $(TARGET_TERM)
+	rm -rf $(TARGET_GUI)
 
 .PHONY: clean term gui
