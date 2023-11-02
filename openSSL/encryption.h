@@ -5,3 +5,5 @@
 #define ENC_ELEMENT_BYTES sizeof(unsigned char) /* Tamano en bytes por elemento a leer */
 
 void encryptFile(const char* inputFile, const unsigned char* iv);
+
+void encryptKey(const char* AESkeyFile);

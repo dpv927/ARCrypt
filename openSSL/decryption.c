@@ -1,5 +1,6 @@
 #include <openssl/evp.h>
 #include <openssl/aes.h>
+#include <openssl/pem.h>
 #include <sys/stat.h>
 #include <libgen.h>
 #include <unistd.h>
@@ -87,8 +88,41 @@ void decryptFile(const char* inputFile, const char* keyFile, const unsigned char
   fclose(input);
   fclose(output);
 
-  /* Sustituir */
+  /* S:wustituir */
   remove(inputFile);
   rename(outputFile, inputFile);
   remove(keyFile);
+}
+
+// Cambiar 256 por 2048/8
+void decryptKey(const char* AESkeyFile, const char* RSAkeyFile) {
+  FILE* aes_stream;
+  FILE* rsa_stream;
+  unsigned char raw_aes_key[256]; // clave a desencriptar
+  unsigned char aes_key[KEY_BYTES]; // clave 
+  RSA* rsa_key;
+
+  if((aes_stream = fopen(AESkeyFile, "r")) == NULL) 
+    return; /* Error al abrir el archivo de la clave aes */
+
+  // Obtener la clave AES encriptada 
+  fread(raw_aes_key, sizeof(unsigned char), 256, aes_stream);
+  fclose(aes_stream);
+  
+  // Obtener la clave RSA
+  if((rsa_stream = fopen(RSAkeyFile, "r")) == NULL) 
+    return; /* Error al abrir el archivo de la clave aes */
+
+  rsa_key = PEM_read_RSAPrivateKey(rsa_stream, NULL, NULL, NULL);
+  fclose(rsa_stream);
+
+  // Desencriptar la clave aes
+  RSA_private_decrypt(256, raw_aes_key, aes_key, rsa_key, RSA_PKCS1_PADDING);
+  RSA_free(rsa_key);
+
+  if((aes_stream = fopen(AESkeyFile, "w")) == NULL) 
+    return; /* Error al abrir el archivo de la clave aes */
+
+  fwrite(aes_key, sizeof(unsigned char), KEY_BYTES, aes_stream);
+  fclose(aes_stream);
 }
