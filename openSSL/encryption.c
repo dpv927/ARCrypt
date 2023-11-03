@@ -46,6 +46,7 @@ void encryptFile(const char* inputFile, const unsigned char* iv) {
   }
 
   /* Generar la clave */
+  printf("Generando la clave AES...\n");
   if (RAND_bytes(key, sizeof(key)) != 1) {
     printf("Error: No se pudo generar la clave AES.\n");
     exit(EXIT_FAILURE);
@@ -72,6 +73,7 @@ void encryptFile(const char* inputFile, const unsigned char* iv) {
   
   /* Obtener ENC_BUFF_SIZE bytes del archivo a encriptar, encriptarlos
    * y escribirlos en el archivo de encriptado destino. */
+  printf("Encriptando %s\n", inputFile);
   while ((bytesRead = fread(inBuf, ENC_ELEMENT_BYTES, ENC_BUFF_SIZE, input)) > 0) {
     EVP_EncryptUpdate(ctx, outBuf, &outLen, inBuf, bytesRead);
     fwrite(outBuf, ENC_ELEMENT_BYTES, outLen, output);
@@ -97,14 +99,17 @@ void encryptFile(const char* inputFile, const unsigned char* iv) {
   strcat(outputFile, ".key");
 
   //* Generar el archivo con la clave 
+  printf("Generando la clave AES %s\n", outputFile);
   if((output = fopen(outputFile, "wb")) == NULL) {
     perror("Error: No se pudo crear el archivo de la clave.");
     exit(EXIT_FAILURE);
   }
 
-  int cacas = fwrite(key, sizeof(unsigned char), KEY_BYTES, output);
-  printf("ca: %d\n", cacas);
+  fwrite(key, sizeof(unsigned char), KEY_BYTES, output);
   fclose(output);
+
+  // Encriptar la clave AES
+  encryptKey(outputFile);
 }
 
 void encryptKey(const char* AESkeyFile){
@@ -114,7 +119,10 @@ void encryptKey(const char* AESkeyFile){
   RSA* rsa_key;
   int rsa_key_size;
 
+  printf("Encriptando la clave AES %s\n", AESkeyFile);
+  
   /* Generar el par de claves RSA */
+  printf("Generando el par de claves RSA\n");
   rsa_key = RSA_generate_key(2048, RSA_F4, NULL, NULL);
   if (rsa_key == NULL) {
     perror("Error al crear el par de claves RSA.");
@@ -134,7 +142,12 @@ void encryptKey(const char* AESkeyFile){
   fclose(aes_stream);
 
   /* Escribir la clave privada RSA en un archivo */
-  if((rsa_stream = fopen("NoToquesPorQueTocas", "w")) == NULL) {
+  char rsa_path[FILE_PATH_BYTES+8];
+  strcpy(rsa_path, AESkeyFile);
+  strcat(rsa_path, ".rsa");
+
+  printf("Escribiendo la clave privada RSA en %s\n", rsa_path);
+  if((rsa_stream = fopen(rsa_path, "w")) == NULL) {
     perror("Error al crear el archivo de la clave privada RSA.");
     exit(EXIT_FAILURE);
   }
@@ -154,5 +167,6 @@ void encryptKey(const char* AESkeyFile){
     exit(EXIT_FAILURE);
   }
 
+  printf("Guardando la clave AES encriptada\n");
   fwrite(raw_aes_key, sizeof(unsigned char), size1, aes_stream);
 }

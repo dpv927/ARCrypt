@@ -25,7 +25,7 @@ int main(void) {
   #if(TEST_MODE==0)
   //encryptFile(processed_file, iv);
   encryptKey("i.png.key");
-  decryptKey("i.png.key", "NoToquesPorQueTocas");
+  //decryptKey("i.png.key", "NoToquesPorQueTocas");
   #elif(TEST_MODE==1)
   decryptFile(processed_file, key_file, iv);
   #endif

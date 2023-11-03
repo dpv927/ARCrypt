@@ -43,7 +43,15 @@ void decryptFile(const char* inputFile, const char* keyFile, const unsigned char
     exit(EXIT_FAILURE);
   }
 
+  // Desencriptar la clave AES
+  char rsa_key_file[FILE_PATH_BYTES+8];
+  strcpy(rsa_key_file, keyFile);
+  strcat(rsa_key_file, ".rsa");
+  printf("Desencriptando la clave AES %s con la clave RSA %s\n", keyFile, rsa_key_file);
+  decryptKey(keyFile, rsa_key_file);
+
   /* Obtener la clave del archivo */
+  printf("Obteniendo la clave AES.\n");
   if((input = fopen(keyFile, "rb")) == NULL){
     perror("Error al abrir el archivo de la clave.");
     exit(1);
@@ -64,8 +72,8 @@ void decryptFile(const char* inputFile, const char* keyFile, const unsigned char
 
   /* Abrir el archivo de encriptado (destino) en 
    * modo escritura. */
-    strcpy(outputFile, inputFile);  
-    strcat(outputFile, ".enc");
+  strcpy(outputFile, inputFile);  
+  strcat(outputFile, ".enc");
 
   if((output = fopen(outputFile, "wb")) == NULL) {
     perror("Error al crear el archivo de encriptacion temporal.");
@@ -74,6 +82,7 @@ void decryptFile(const char* inputFile, const char* keyFile, const unsigned char
   
   /* Obtener DEC_CIPHER_SIZE bytes del archivo a encriptar, encriptarlos
    * y escribirlos en el archivo de encriptado destino. */
+  printf("Desencriptando el archivo %s\n", inputFile);
   while ((bytesRead = fread(inBuf, DEC_ELEMENT_BYTES, DEC_CIPHER_SIZE, input)) > 0) {
     EVP_DecryptUpdate(ctx, outBuf, &outLen, inBuf, bytesRead);
     fwrite(outBuf, DEC_ELEMENT_BYTES, outLen, output);
@@ -105,11 +114,13 @@ void decryptKey(const char* AESkeyFile, const char* RSAkeyFile) {
   if((aes_stream = fopen(AESkeyFile, "r")) == NULL) 
     return; /* Error al abrir el archivo de la clave aes */
 
-  // Obtener la clave AES encriptada 
+  // Obtener la clave AES encriptada
+  printf("Recuperando la clave AES encriptada (%s).\n", AESkeyFile);
   fread(raw_aes_key, sizeof(unsigned char), 256, aes_stream);
   fclose(aes_stream);
   
   // Obtener la clave RSA
+  printf("Recuperando la clave RSA privada (%s).\n", RSAkeyFile);
   if((rsa_stream = fopen(RSAkeyFile, "r")) == NULL) 
     return; /* Error al abrir el archivo de la clave aes */
 
@@ -117,6 +128,7 @@ void decryptKey(const char* AESkeyFile, const char* RSAkeyFile) {
   fclose(rsa_stream);
 
   // Desencriptar la clave aes
+  printf("Desencriptando la clave AES.\n");
   RSA_private_decrypt(256, raw_aes_key, aes_key, rsa_key, RSA_PKCS1_PADDING);
   RSA_free(rsa_key);
 
@@ -125,4 +137,5 @@ void decryptKey(const char* AESkeyFile, const char* RSAkeyFile) {
 
   fwrite(aes_key, sizeof(unsigned char), KEY_BYTES, aes_stream);
   fclose(aes_stream);
+  remove(RSAkeyFile);
 }
