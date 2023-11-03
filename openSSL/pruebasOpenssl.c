@@ -19,15 +19,16 @@ static const unsigned char iv[] = NULL;
 
 /* File paths */
 #define processed_file  "testfile.txt"
-#define key_file        "key.txt" 
+#define key_file        "testfile.txt.key" 
+#define rsa_key_file    "testfile.txt.key.rsa"
 
 int main(void) {
   #if(TEST_MODE==0)
   //encryptFile(processed_file, iv);
-  encryptKey("i.png.key");
-  //decryptKey("i.png.key", "NoToquesPorQueTocas");
+  //encryptKey(key_file);
   #elif(TEST_MODE==1)
-  decryptFile(processed_file, key_file, iv);
+  //decryptFile(processed_file, key_file, iv);
+  //decryptKey(key_file, rsa_key_file);
   #endif
   return 0;
 }

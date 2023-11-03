@@ -7,10 +7,13 @@
 /* Bytes de la clave */
 #if(MOD_BITS==128)
     #define KEY_BYTES 16
+    #define RSA_KEY_BITS 1024
 #elif(MOD_BITS==192)
     #define KEY_BYTES 24
+    #define RSA_KEY_BITS 1536
 #elif(MOD_BITS==256)
     #define KEY_BYTES 32
+    #define RSA_KEY_BITS 2048
 #endif
 
 /* Usar ECB como modo */
