@@ -17,13 +17,13 @@
 #endif
 
 void encryptFile(const char* inputFile, const unsigned char* iv) {
-  EVP_CIPHER_CTX* ctx;
   unsigned char inBuf[ENC_BUFF_SIZE];
   unsigned char outBuf[ENC_CIPHER_SIZE];
   unsigned char key[KEY_BYTES];
   char input_file_cpy[FILE_PATH_BYTES];
   char outputFile[FILE_PATH_BYTES+4];
   struct stat inode_info;
+  EVP_CIPHER_CTX* ctx;
   char* dir_name;
   FILE* input;
   FILE* output;
@@ -114,31 +114,18 @@ void encryptFile(const char* inputFile, const unsigned char* iv) {
   remove(inputFile);
   rename(outputFile, inputFile);
 
-  /* Crear archivo con la clave */
+  /* Generar el nombre del archivo con la clave */
   strcpy(outputFile, dir_name);
   strcat(outputFile, "/");
   strcat(outputFile, basename((char*)inputFile));
   strcat(outputFile, ".key");
 
-  //* Generar el archivo con la clave 
-  p_infoString("Guardando la clave AES en", outputFile);
-  if((output = fopen(outputFile, "wb")) == NULL) {
-    #ifdef GTK_GUI
-    create_error_dialog();
-    #endif
-    p_error("No se pudo crear el archivo de la clave");
-    exit(EXIT_FAILURE);
-  }
-
-  fwrite(key, ENC_ELEMENT_BYTES, KEY_BYTES, output);
-  fclose(output);
-
-  // Encriptar la clave AES
-  encryptKey(outputFile);
+  // Encriptar la clave AES y guardarla en el archivo .key
+  // en el mismo directorio que el archivo encriptado.
+  encryptKey(outputFile, key);
 }
 
-void encryptKey(const char* AESkeyFile){
-  unsigned char aes_key[KEY_BYTES];
+void encryptKey(const char* AESkeyFile, unsigned char AESKey[KEY_BYTES]){
   char rsa_path[FILE_PATH_BYTES+8];
   unsigned char* raw_aes_key;
   int cipher_len;
@@ -156,18 +143,6 @@ void encryptKey(const char* AESkeyFile){
     p_error("Error al crear el par de claves RSA");
     exit(EXIT_FAILURE);
   }
-
-  /* Obtener la clave AES */
-  if((aes_stream = fopen(AESkeyFile, "r")) == NULL) {
-    #ifdef GTK_GUI
-    create_error_dialog();
-    #endif
-    p_error("No se pudo abrir el archivo de la clave AES");
-    exit(EXIT_FAILURE);
-  }
-
-  fread(aes_key, ENC_ELEMENT_BYTES, KEY_BYTES, aes_stream);
-  fclose(aes_stream);
 
   /* Escribir la clave privada RSA en un archivo */
   strcpy(rsa_path, AESkeyFile);
@@ -188,7 +163,7 @@ void encryptKey(const char* AESkeyFile){
   /* Encriptar la clave AES con la clave publica de RSA. En el metodo de desencriptacion
   * de la clave AES, se debera utilizar la clave privada RSA. */
   raw_aes_key = (unsigned char *) malloc(RSA_size(rsa_key));
-  cipher_len = RSA_public_encrypt(KEY_BYTES, aes_key, raw_aes_key, rsa_key, RSA_PKCS1_PADDING);
+  cipher_len = RSA_public_encrypt(KEY_BYTES, AESKey, raw_aes_key, rsa_key, RSA_PKCS1_PADDING);
   RSA_free(rsa_key);
 
   /* Guardar en un archivo la clave AES encriptada */
@@ -197,9 +172,13 @@ void encryptKey(const char* AESkeyFile){
     #ifdef GTK_GUI
     create_error_dialog();
     #endif
-    perror("Error al abrir el archivo de la clave AES.");
+    perror("Error al crear el archivo de la clave AES.");
+    free(raw_aes_key);
+    remove(rsa_path);
     exit(EXIT_FAILURE);
   }
 
   fwrite(raw_aes_key, ENC_ELEMENT_BYTES, cipher_len, aes_stream);
+  fclose(aes_stream);
+  free(raw_aes_key);
 }

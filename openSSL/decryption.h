@@ -1,5 +1,7 @@
 #pragma once
 
+#include "params.h"
+
 #define DEC_BUFF_SIZE     8192
 #define DEC_CIPHER_SIZE   DEC_BUFF_SIZE
 #define DEC_ELEMENT_BYTES sizeof(unsigned char)
@@ -19,5 +21,6 @@ void decryptFile(const char* inputFile, const char* keyFile, const unsigned char
 * 
 * @param AESkeyFile Ruta del archivo de la clave AES a desencriptar.
 * @param RSAkeyFile Ruta del archivo de la clave privada RSA.
+* @param AESkey Buffer de longitud KEY_BYTES donde se va a guardar la clave desencriptada.
 * * * */
-void decryptKey(const char* AESkeyFile, const char* RSAkeyFile);
+void decryptKey(const char* AESkeyFile, const char* RSAkeyFile, unsigned char AESkey [KEY_BYTES]);

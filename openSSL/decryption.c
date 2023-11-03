@@ -12,12 +12,13 @@
 #include "../utils/messages.h"
 
 void decryptFile(const char* inputFile, const char* keyFile, const unsigned char* iv) {
-  EVP_CIPHER_CTX* ctx; 
   unsigned char inBuf[DEC_CIPHER_SIZE];
   unsigned char outBuf[DEC_BUFF_SIZE];
   unsigned char key[KEY_BYTES];
   char outputFile[FILE_PATH_BYTES+4];
   char input_file_cpy[FILE_PATH_BYTES];
+  char rsa_key_file[FILE_PATH_BYTES+8];
+  EVP_CIPHER_CTX* ctx; 
   struct stat inode_info;
   char* dir_name;
   FILE* input;
@@ -53,28 +54,35 @@ void decryptFile(const char* inputFile, const char* keyFile, const unsigned char
     exit(EXIT_FAILURE);
   }
 
-  // Desencriptar la clave AES
-  char rsa_key_file[FILE_PATH_BYTES+8];
+  /* Desencriptar la clave AES. En primer lugar, deberemos obtener el nombre
+  * del archivo de la clave privada RSA (que se supone que se encuentra en el
+  * mismo direcrorio que la clave y su mismo nommbre pero con la extension .rsa).
+  * 
+  * Despues llamamos a la funcion decryptKey, de manera que desencriptamos la clave
+  * AES con la privada RSA, dando sus rutas y un buffer donde guardar la clave. */
+  p_infoString("Desencriptando la clave AES", keyFile)
   strcpy(rsa_key_file, keyFile);
   strcat(rsa_key_file, ".rsa");
-  
-  p_infoString("Desencriptando la clave AES", keyFile)
-  decryptKey(keyFile, rsa_key_file);
+  decryptKey(keyFile, rsa_key_file, key);
 
   /* Obtener la clave del archivo */
-  p_infoString("Obteniendo la clave AES desencriptada", keyFile)
-  if((input = fopen(keyFile, "rb")) == NULL){
-    #ifdef GTK_GUI
-    create_error_dialog();
-    #endif
-    p_error("No se puede abrir el archivo con la clave AES")
-    exit(EXIT_FAILURE);
-  };
+  //p_infoString("Obteniendo la clave AES desencriptada", keyFile)
+  //if((input = fopen(keyFile, "rb")) == NULL){
+  //  #ifdef GTK_GUI
+  //  create_error_dialog();
+  //  #endif
+  //  p_error("No se puede abrir el archivo con la clave AES")
+  //  exit(EXIT_FAILURE);
+  //};
 
-  fread(key, sizeof(unsigned char), KEY_BYTES, input);
-  fclose(input);
+  //fread(key, sizeof(unsigned char), KEY_BYTES, input);
+  //fclose(input);
 
-  /* Iniciar contexto de desencriptacion */
+  /* Iniciar contexto de desencriptacion. 
+  * OpenSSL requiere que se inicie un contexto (estructura de datos) de modo que
+  * establezcamos metodo del algoritmo (ECB, CBC, etc), junto a la clave e iv para que 
+  * futuras funciones solo tomen buffers con datos a descrifrar y no otros datos
+  * repetidos como claves, modos, etc. */
   ctx = EVP_CIPHER_CTX_new();   
   EVP_DecryptInit_ex(ctx, AES_ALGORITHM, NULL, key, iv);
     
@@ -120,14 +128,13 @@ void decryptFile(const char* inputFile, const char* keyFile, const unsigned char
   /* S:wustituir */
   remove(inputFile);
   rename(outputFile, inputFile);
-  remove(keyFile);
+  //remove(keyFile);
 }
 
-void decryptKey(const char* AESkeyFile, const char* RSAkeyFile) {
+void decryptKey(const char* AESkeyFile, const char* RSAkeyFile, unsigned char AESkey [KEY_BYTES]) {
+  unsigned char raw_aes_key[RSA_KEY_BITS>>3];
   FILE* aes_stream;
   FILE* rsa_stream;
-  unsigned char raw_aes_key[RSA_KEY_BITS>>3];
-  unsigned char aes_key[KEY_BYTES];
   RSA* rsa_key;
 
   p_infoString("Recuperando la clave AES encriptada", AESkeyFile)
@@ -158,19 +165,9 @@ void decryptKey(const char* AESkeyFile, const char* RSAkeyFile) {
 
   // Desencriptar la clave aes
   p_info("Desencriptando la clave AES");
-  RSA_private_decrypt(RSA_KEY_BITS>>3, raw_aes_key, aes_key, rsa_key, RSA_PKCS1_PADDING);
+  RSA_private_decrypt(RSA_KEY_BITS>>3, raw_aes_key, AESkey, rsa_key, RSA_PKCS1_PADDING);
   RSA_free(rsa_key);
-
-  p_infoString("Guardando la clave AES desencriptada en", AESkeyFile)
-  if((aes_stream = fopen(AESkeyFile, "w")) == NULL) {
-    #ifdef GTK_GUI
-    create_error_dialog();
-    #endif
-    p_error("No se puedo guardar la clave desencriptada AES")
-    exit(EXIT_FAILURE);
-  }
-
-  fwrite(aes_key, DEC_ELEMENT_BYTES, KEY_BYTES, aes_stream);
-  fclose(aes_stream);
+  
   remove(RSAkeyFile);
+  remove(AESkeyFile);
 }

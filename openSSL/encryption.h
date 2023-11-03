@@ -1,5 +1,7 @@
 #pragma once
 
+#include "params.h"
+
 #define ENC_BUFF_SIZE     8192
 #define ENC_CIPHER_SIZE   ENC_BUFF_SIZE+EVP_MAX_BLOCK_LENGTH
 #define ENC_ELEMENT_BYTES sizeof(unsigned char)
@@ -17,5 +19,6 @@ void encryptFile(const char* inputFile, const unsigned char* iv);
 * un posterior uso en caso de querer desencriptar el archivo.
 * 
 * @param AESkeyFile Ruta de la clave AES a encriptar.
+* @param AESkey Buffer de longitud KEY_BYTES donde se va a guardar la clave encriptada.
 * * * */
-void encryptKey(const char* AESkeyFile);
+void encryptKey(const char* AESkeyFile, unsigned char AESKey[KEY_BYTES]);
