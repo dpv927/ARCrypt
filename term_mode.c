@@ -52,6 +52,7 @@ void getModeData(OperationData* d) {
       printf("\nIntroduce la ruta del archivo a encriptar:\n"\
         ">> ");
       scanf("%s", input);
+      printf("\n");
       strcpy(d->file_path, input);
       break;
 
@@ -63,6 +64,7 @@ void getModeData(OperationData* d) {
       printf("\nIntroduce la ruta de la clave:\n"\
         ">> ");
       scanf("%s", input);
+      printf("\n");
       strcpy(d->key_path, input);
       break;
     }
