@@ -8,7 +8,6 @@ enum WindowType {
 	CONFIRM_WIN,
 	ERROR_WIN,
 	FINISH_WIN,
-	PROGRESS_WIN
 };
 
 #ifdef TESTING
@@ -18,7 +17,6 @@ static const char* win_paths[5] = {
 	[CONFIRM_WIN]  = "models/confirm.glade",
 	[ERROR_WIN]	   = "models/error.glade",
 	[FINISH_WIN]   = "models/finish.glade",
-	[PROGRESS_WIN] = "models/progress.glade"
 };
 #endif
 
@@ -29,6 +27,5 @@ static const char* win_paths[5] = {
 	[CONFIRM_WIN]  = "gtk/models/confirm.glade",
 	[ERROR_WIN]	   = "gtk/models/error.glade",
 	[FINISH_WIN]   = "gtk/models/finish.glade",
-	[PROGRESS_WIN] = "gtk/models/progress.glade"
 };
 #endif

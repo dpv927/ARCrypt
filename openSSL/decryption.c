@@ -27,9 +27,15 @@ void decryptFile(const char* inputFile, const char* keyFile, const unsigned char
 
   /* Comprobar informacion basica */
   if(stat(inputFile, &inode_info)) {
+    #ifdef GTK_GUI
+    create_error_dialog();
+    #endif
     p_error("No se puede acceder o no existe el fichero.")
     exit(EXIT_FAILURE);
   } if((inode_info.st_mode & S_IFMT) == S_IFDIR) {
+    #ifdef GTK_GUI
+    create_error_dialog();
+    #endif
     p_error("La encriptacion de carpetas no esta soportada. "\
     "Comprime dicha carpeta para asi obtener un archivo.")
     exit(EXIT_FAILURE);
@@ -40,6 +46,9 @@ void decryptFile(const char* inputFile, const char* keyFile, const unsigned char
   strcpy(input_file_cpy, inputFile);
   dir_name = dirname((char*) input_file_cpy);
   if (access(dir_name, W_OK | X_OK | R_OK)) {
+    #ifdef GTK_GUI
+    create_error_dialog();
+    #endif
     p_error("No tienes los permisos de lectura/escritura necesarios.")
     exit(EXIT_FAILURE);
   }
@@ -55,6 +64,9 @@ void decryptFile(const char* inputFile, const char* keyFile, const unsigned char
   /* Obtener la clave del archivo */
   p_infoString("Obteniendo la clave AES desencriptada", keyFile)
   if((input = fopen(keyFile, "rb")) == NULL){
+    #ifdef GTK_GUI
+    create_error_dialog();
+    #endif
     p_error("No se puede abrir el archivo con la clave AES")
     exit(EXIT_FAILURE);
   };
@@ -68,6 +80,9 @@ void decryptFile(const char* inputFile, const char* keyFile, const unsigned char
     
   /* Abrir el archivo a encriptar en modo lectura */
   if((input = fopen(inputFile, "rb")) == NULL){
+    #ifdef GTK_GUI
+    create_error_dialog();
+    #endif
     p_error("No se puede abrir el archivo encriptado")
     exit(EXIT_FAILURE);
   };
@@ -78,6 +93,9 @@ void decryptFile(const char* inputFile, const char* keyFile, const unsigned char
   strcat(outputFile, ".enc");
 
   if((output = fopen(outputFile, "wb")) == NULL) {
+    #ifdef GTK_GUI
+    create_error_dialog();
+    #endif
     p_error("No se pudo crear el archivo de encriptacion temporal")
     exit(EXIT_FAILURE);
   }
@@ -114,6 +132,9 @@ void decryptKey(const char* AESkeyFile, const char* RSAkeyFile) {
 
   p_infoString("Recuperando la clave AES encriptada", AESkeyFile)
   if((aes_stream = fopen(AESkeyFile, "r")) == NULL) {
+    #ifdef GTK_GUI
+    create_error_dialog();
+    #endif
     p_error("No se pudo abrir el archivo de la clave encriptada AES")
     exit(EXIT_FAILURE);
   }
@@ -125,6 +146,9 @@ void decryptKey(const char* AESkeyFile, const char* RSAkeyFile) {
   // Obtener la clave RSA
   p_infoString("Recuperando la clave RSA privada", RSAkeyFile)
   if((rsa_stream = fopen(RSAkeyFile, "r")) == NULL) {
+    #ifdef GTK_GUI
+    create_error_dialog();
+    #endif
     p_error("Error al abrir el archivo de la clave RSA")
     exit(EXIT_FAILURE);
   }
@@ -139,6 +163,9 @@ void decryptKey(const char* AESkeyFile, const char* RSAkeyFile) {
 
   p_infoString("Guardando la clave AES desencriptada en", AESkeyFile)
   if((aes_stream = fopen(AESkeyFile, "w")) == NULL) {
+    #ifdef GTK_GUI
+    create_error_dialog();
+    #endif
     p_error("No se puedo guardar la clave desencriptada AES")
     exit(EXIT_FAILURE);
   }

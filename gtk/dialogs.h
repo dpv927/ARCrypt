@@ -28,20 +28,7 @@ void create_confirmation_dialog(void);
  * * * */
 void create_error_dialog(void);
 
-/* Obtiene un puntero a la instancia actual de un cuadro de dialogo
- * de progreso en caso de que exista. 
- * 
- * @returns Devuelve nulo si no existe ninguna instancia. */
-GtkWidget* get_progress_dialog_instance();
-
-/* @brief Crea una ventana de dialogo que indica al usuario que debe
- * esperar a que una operacion se termine. La ventana no se puede cerrar
- * por parte del usuario. La ventana solo se cerrara cuando la operacion
- * finalice por parte del programa. 
- * 
- * @return Devuelve la instancia de la ventana para que pueda ser cerrada
- * externamente tras hacer las operaciones convenientes.
- * * * */
-void create_progress_dialog(void);
-
+/* @brief Crea una ventana que notifica que la operacion que se estaba 
+* llevando a cabo ha finalizado con exito.
+* * * */
 void create_end_dialog(void);

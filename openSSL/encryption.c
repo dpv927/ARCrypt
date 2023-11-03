@@ -12,6 +12,9 @@
 #include "params.h"
 #include "encryption.h"
 #include "../utils/messages.h"
+#ifdef GTK_GUI
+#include "../gtk/dialogs.h"
+#endif
 
 void encryptFile(const char* inputFile, const unsigned char* iv) {
   EVP_CIPHER_CTX* ctx;
@@ -29,9 +32,15 @@ void encryptFile(const char* inputFile, const unsigned char* iv) {
 
   /* Comprobar informacion basica */
   if(stat(inputFile, &inode_info)) {
+    #ifdef GTK_GUI
+    create_error_dialog();
+    #endif
     p_error("No se puede acceder o no existe el fichero");
     exit(EXIT_FAILURE);
   } if((inode_info.st_mode & S_IFMT) == S_IFDIR) {
+    #ifdef GTK_GUI
+    create_error_dialog();
+    #endif
     p_error("La encriptacion de carpetas no esta soportada. "\
     "Comprime dicha carpeta para asi obtener un archivo");
     exit(EXIT_FAILURE);
@@ -42,6 +51,9 @@ void encryptFile(const char* inputFile, const unsigned char* iv) {
   strcpy(input_file_cpy, inputFile);
   dir_name = dirname((char*) input_file_cpy);
   if (access(dir_name, W_OK | X_OK | R_OK)) {
+    #ifdef GTK_GUI
+    create_error_dialog();
+    #endif
     p_error("No tienes los permisos de lectura/escritura necesarios");
     exit(EXIT_FAILURE);
   }
@@ -49,6 +61,9 @@ void encryptFile(const char* inputFile, const unsigned char* iv) {
   /* Generar la clave */
   p_info("Generando la clave AES");
   if (RAND_bytes(key, sizeof(key)) != 1) {
+    #ifdef GTK_GUI
+    create_error_dialog();
+    #endif
     p_error("Error: No se pudo generar la clave AES");
     exit(EXIT_FAILURE);
   }
@@ -58,6 +73,9 @@ void encryptFile(const char* inputFile, const unsigned char* iv) {
 
   /* Abrir el archivo a encriptar en modo lectura */
   if((input = fopen(inputFile, "rb")) == NULL){
+    #ifdef GTK_GUI
+    create_error_dialog();
+    #endif
     p_error("No se pudo abrir el archivo a encriptar");
     exit(EXIT_FAILURE);
   };
@@ -68,6 +86,9 @@ void encryptFile(const char* inputFile, const unsigned char* iv) {
   /* Abrir el archivo de encriptado (destino) en 
    * modo escritura. */
   if((output = fopen(outputFile, "wb")) == NULL) {
+    #ifdef GTK_GUI
+    create_error_dialog();
+    #endif
     p_error("No se pudo crear el archivo de encriptacion temporal");
     exit(EXIT_FAILURE);
   }
@@ -102,6 +123,9 @@ void encryptFile(const char* inputFile, const unsigned char* iv) {
   //* Generar el archivo con la clave 
   p_infoString("Guardando la clave AES en", outputFile);
   if((output = fopen(outputFile, "wb")) == NULL) {
+    #ifdef GTK_GUI
+    create_error_dialog();
+    #endif
     p_error("No se pudo crear el archivo de la clave");
     exit(EXIT_FAILURE);
   }
@@ -126,12 +150,18 @@ void encryptKey(const char* AESkeyFile){
   p_info("Generando el par de claves RSA");
   rsa_key = RSA_generate_key(RSA_KEY_BITS, RSA_F4, NULL, NULL);
   if (rsa_key == NULL) {
+    #ifdef GTK_GUI
+    create_error_dialog();
+    #endif
     p_error("Error al crear el par de claves RSA");
     exit(EXIT_FAILURE);
   }
 
   /* Obtener la clave AES */
   if((aes_stream = fopen(AESkeyFile, "r")) == NULL) {
+    #ifdef GTK_GUI
+    create_error_dialog();
+    #endif
     p_error("No se pudo abrir el archivo de la clave AES");
     exit(EXIT_FAILURE);
   }
@@ -145,6 +175,9 @@ void encryptKey(const char* AESkeyFile){
 
   p_infoString("Guardando la clave privada RSA en", rsa_path);
   if((rsa_stream = fopen(rsa_path, "w")) == NULL) {
+    #ifdef GTK_GUI
+    create_error_dialog();
+    #endif
     p_error("Error al crear el archivo de la clave privada RSA");
     exit(EXIT_FAILURE);
   }
@@ -161,6 +194,9 @@ void encryptKey(const char* AESkeyFile){
   /* Guardar en un archivo la clave AES encriptada */
   p_infoString("Guardando la clave AES encriptada en", AESkeyFile);
   if((aes_stream = fopen(AESkeyFile, "w")) == NULL) {
+    #ifdef GTK_GUI
+    create_error_dialog();
+    #endif
     perror("Error al abrir el archivo de la clave AES.");
     exit(EXIT_FAILURE);
   }

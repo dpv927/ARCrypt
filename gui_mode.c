@@ -26,8 +26,8 @@ void encrypt_trigger(GtkButton *button, gpointer user_data) {
 	create_confirmation_dialog();
 	int response = get_confirm_dialog_response();
 	
-  if(response == GTK_RESPONSE_CANCEL)
-    return;
+  	if(response == GTK_RESPONSE_CANCEL)
+    	return;
   
 	encryptFile(enc_path, NULL);
 }
@@ -42,8 +42,8 @@ void decrypt_trigger(GtkButton *button, gpointer user_data) {
 	create_confirmation_dialog();
 	int response = get_confirm_dialog_response();
 	
-  if(response == GTK_RESPONSE_CANCEL)
-    return;
+  	if(response == GTK_RESPONSE_CANCEL)
+    	return;
   
 	decryptFile(dec_path, key_path, NULL);
 }
