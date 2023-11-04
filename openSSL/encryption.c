@@ -30,7 +30,20 @@ void encryptFile(const char* inputFile, const unsigned char* iv) {
   int bytesRead;
   int outLen;
 
-  /* Comprobar informacion basica */
+  /* Comprobar informacion basica sobre la ruta del fichero objetivo.
+  * Hay que comprobar si el usuario esta queriendo acceder an archivo al que no tiene
+  * acceso, no existe o es una carpeta. 
+  *
+  * La encriptacion de carpetas no esta soportada ya que no se trata de un fichero
+  * regular, es decir, no podemos leer los bytes en bruto de la carpeta porque 
+  * la carpeta no es mas que una 'estructura' en la cual los archivos que contiene
+  * 'apuntan' a esta. Por lo tanto, leer los bytes de dicha carpeta no seria lo mismo
+  * que leer los bytes de cada uno de los archivos que contiene.
+  * 
+  * Para solucionar esto, se podria aplicar una funcion de encriptacion recursiva a 
+  * cada uno de los archivos de dicho directorio, o mas sencillo aun, comprimir dicha
+  * carpeta en cualquier formato y encriptarla ya que en este ultimo caso si se trataria
+  * de un fichero regular. */
   if(stat(inputFile, &inode_info)) {
     #ifdef GTK_GUI
     create_error_dialog();
@@ -46,10 +59,15 @@ void encryptFile(const char* inputFile, const unsigned char* iv) {
     exit(EXIT_FAILURE);
   }
 
-  /* Ver si el usuario tiene permisos de lectura/escritura sobre el directorio en
-  * el que se encuentra el archivo a encriptar. */
+  /* Ver si el usuario tiene permisos de lectura/escritura y acceso sobre el 
+  * directorio en el que se encuentra el archivo a encriptar.
+  *
+  * Es importante verificar esto ya que el usuario puede tener permisos de lectura
+  *  en el directorio objetivo, pero no de escritura, y eso es muy importante a la 
+  * hora de generar y eliminar los archivos en operaciones posteriores. */
   strcpy(input_file_cpy, inputFile);
   dir_name = dirname((char*) input_file_cpy);
+
   if (access(dir_name, W_OK | X_OK | R_OK)) {
     #ifdef GTK_GUI
     create_error_dialog();
@@ -58,7 +76,8 @@ void encryptFile(const char* inputFile, const unsigned char* iv) {
     exit(EXIT_FAILURE);
   }
 
-  /* Generar la clave */
+  /* Generar la clave AES.
+  * Guardamos en key una secuencia de bytes aleatorios */
   p_info("Generando la clave AES");
   if (RAND_bytes(key, sizeof(key)) != 1) {
     #ifdef GTK_GUI
@@ -68,6 +87,7 @@ void encryptFile(const char* inputFile, const unsigned char* iv) {
     exit(EXIT_FAILURE);
   }
 
+  /* Iniciar el contexto de desencriptacion */
   ctx = EVP_CIPHER_CTX_new();  
   EVP_EncryptInit_ex(ctx, AES_ALGORITHM, NULL, key, iv);
 
@@ -80,6 +100,9 @@ void encryptFile(const char* inputFile, const unsigned char* iv) {
     exit(EXIT_FAILURE);
   };
 
+  /* Generar el nombre del archivo de encriptado temporal.
+  * Tendra el mismo nombre que el original pero con la extension ".enc". Se 
+  * encontrara en el mismo directorio que el archivo a encriptar.  */
   strcpy(outputFile, inputFile);
   strcat(outputFile, ".enc");
 
@@ -114,7 +137,9 @@ void encryptFile(const char* inputFile, const unsigned char* iv) {
   remove(inputFile);
   rename(outputFile, inputFile);
 
-  /* Generar el nombre del archivo con la clave */
+  /* Generar el nombre del archivo con la clave AES. 
+  * Tendra el mismo nombre que el archivo a encriptar pero con 
+  * la extension ".key". */
   strcpy(outputFile, dir_name);
   strcat(outputFile, "/");
   strcat(outputFile, basename((char*)inputFile));
