@@ -11,7 +11,7 @@
 #include "decryption.h"
 #include "../utils/messages.h"
 
-void decryptFile(const char* inputFile, const char* keyFile, const unsigned char* iv) {
+void decryptFile_withAES(const char* inputFile, const char* keyFile) {
   unsigned char inBuf[DEC_CIPHER_SIZE];
   unsigned char outBuf[DEC_BUFF_SIZE];
   unsigned char key[KEY_BYTES];
@@ -80,11 +80,11 @@ void decryptFile(const char* inputFile, const char* keyFile, const unsigned char
   p_infoString("Desencriptando la clave AES", keyFile)
   strcpy(rsa_key_file, keyFile);
   strcat(rsa_key_file, ".rsa");
-  decryptKey(keyFile, rsa_key_file, key);
+  decryptAESKey_withRSA(keyFile, rsa_key_file, key);
 
   /* Iniciar contexto de desencriptacion. */
-  ctx = EVP_CIPHER_CTX_new();   
-  EVP_DecryptInit_ex(ctx, AES_ALGORITHM, NULL, key, iv);
+  ctx = EVP_CIPHER_CTX_new();
+  EVP_DecryptInit_ex(ctx, AES_ALGORITHM, NULL, key, NULL);
     
   /* Abrir stream en el archivo a desencriptar. */
   if((input = fopen(inputFile, "rb")) == NULL){
@@ -138,7 +138,7 @@ void decryptFile(const char* inputFile, const char* keyFile, const unsigned char
   rename(outputFile, inputFile);
 }
 
-void decryptKey(const char* AESkeyFile, const char* RSAkeyFile, unsigned char AESkey [KEY_BYTES]) {
+void decryptAESKey_withRSA(const char* AESkeyFile, const char* RSAkeyFile, unsigned char AESkey [KEY_BYTES]) {
   unsigned char raw_aes_key[RSA_KEY_BITS>>3];
   FILE* aes_stream;
   FILE* rsa_stream;

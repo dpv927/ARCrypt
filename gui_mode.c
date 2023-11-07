@@ -29,7 +29,7 @@ void encrypt_trigger(GtkButton *button, gpointer user_data) {
   	if(response == GTK_RESPONSE_CANCEL)
     	return;
   
-	encryptFile(enc_path, NULL);
+	encryptFile_withAES(enc_path);
 }
 
 /* Funcion a ejecutar para desencriptar */
@@ -45,5 +45,5 @@ void decrypt_trigger(GtkButton *button, gpointer user_data) {
   	if(response == GTK_RESPONSE_CANCEL)
     	return;
   
-	decryptFile(dec_path, key_path, NULL);
+	decryptFile_withAES(dec_path, key_path);
 }

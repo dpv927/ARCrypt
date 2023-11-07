@@ -14,7 +14,7 @@
 * @param keyFile Ruta del archivo que contiene la clave encriptada.
 * @param iv Vector de inicializacion (Normalmente NULL).
 * * * */
-void decryptFile(const char* inputFile, const char* keyFile, const unsigned char* iv);
+void decryptFile_withAES(const char* inputFile, const char* keyFile);
 
 /* @brief Desencripta un archivo que contiene una clave AES dada la ruta de la clave privada
 * RSA que se necesita para desencriptar dicha clave AES.
@@ -23,4 +23,5 @@ void decryptFile(const char* inputFile, const char* keyFile, const unsigned char
 * @param RSAkeyFile Ruta del archivo de la clave privada RSA.
 * @param AESkey Buffer de longitud KEY_BYTES donde se va a guardar la clave desencriptada.
 * * * */
-void decryptKey(const char* AESkeyFile, const char* RSAkeyFile, unsigned char AESkey [KEY_BYTES]);
+void decryptAESKey_withRSA(const char* AESkeyFile, const char* RSAkeyFile, unsigned char AESkey [KEY_BYTES]);
+

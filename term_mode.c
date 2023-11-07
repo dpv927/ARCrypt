@@ -12,10 +12,10 @@ void init_term(void) {
    
   switch (data.mode) {
     case ENCRYPTION_MODE:
-      encryptFile(data.file_path, NULL);
+      encryptFile_withAES(data.file_path);
       break;
     case DECRYPTION_MODE:
-      decryptFile(data.file_path, data.key_path, NULL);
+      decryptFile_withAES(data.file_path, data.key_path);
       break;
   }
 }

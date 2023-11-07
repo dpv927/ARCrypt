@@ -16,7 +16,7 @@
 #include "../gtk/dialogs.h"
 #endif
 
-void encryptFile(const char* inputFile, const unsigned char* iv) {
+void encryptFile_withAES(const char* inputFile) {
   unsigned char inBuf[ENC_BUFF_SIZE];
   unsigned char outBuf[ENC_CIPHER_SIZE];
   unsigned char key[KEY_BYTES];
@@ -89,7 +89,7 @@ void encryptFile(const char* inputFile, const unsigned char* iv) {
 
   /* Iniciar el contexto de desencriptacion */
   ctx = EVP_CIPHER_CTX_new();  
-  EVP_EncryptInit_ex(ctx, AES_ALGORITHM, NULL, key, iv);
+  EVP_EncryptInit_ex(ctx, AES_ALGORITHM, NULL, key, NULL);
 
   /* Abrir el archivo a encriptar en modo lectura */
   if((input = fopen(inputFile, "rb")) == NULL){
@@ -147,10 +147,10 @@ void encryptFile(const char* inputFile, const unsigned char* iv) {
 
   // Encriptar la clave AES y guardarla en el archivo .key
   // en el mismo directorio que el archivo encriptado.
-  encryptKey(outputFile, key);
+  encryptAESKey_withRSA(outputFile, key);
 }
 
-void encryptKey(const char* AESkeyFile, unsigned char AESKey[KEY_BYTES]){
+void encryptAESKey_withRSA(const char* AESkeyFile, unsigned char AESKey[KEY_BYTES]){
   char rsa_path[FILE_PATH_BYTES+8];
   unsigned char* raw_aes_key;
   int cipher_len;

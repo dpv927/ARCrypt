@@ -10,9 +10,8 @@
 * llamada a la funcion @encryptKey para la clave generada AES con una clave publica RSA.
 * 
 * @param inputFile Ruta del archivo a encriptar.
-* @param iv Vector de inicializacion (Normalmente NULL).
 * * * */
-void encryptFile(const char* inputFile, const unsigned char* iv);
+void encryptFile_withAES(const char* inputFile);
 
 /* @brief Encripta un archivo en la que se almacena una AES. La funcion genera un par de claves
 * RSA, encripta la clave AES con la clave publica y guarda en un archivo la clave privada RSA para
@@ -21,4 +20,7 @@ void encryptFile(const char* inputFile, const unsigned char* iv);
 * @param AESkeyFile Ruta de la clave AES a encriptar.
 * @param AESkey Buffer de longitud KEY_BYTES donde se va a guardar la clave encriptada.
 * * * */
-void encryptKey(const char* AESkeyFile, unsigned char AESKey[KEY_BYTES]);
+void encryptAESKey_withRSA(const char* AESkeyFile, unsigned char AESKey[KEY_BYTES]);
+
+
+// void encryptRSAKey_withAES(const char* inputFile, const char* passwd);
