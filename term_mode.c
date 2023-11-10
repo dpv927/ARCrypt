@@ -12,6 +12,9 @@ void init_term(void) {
   /* Mostar el logo */
   system("clear");
   FILE* ptr = fopen("extra/logo.txt", "r");
+  if(ptr == NULL) {
+    perror("No se encuentra el archivo de inicio.");
+  }
   char buff[100];
 
   while (fgets(buff, sizeof(buff), ptr) != NULL)
@@ -69,7 +72,6 @@ void getModeData(OperationData* d) {
       next_line()
 
       strcpy(d->file_path, input);
-      exit(0);
       break;
 
     case DECRYPTION_MODE:
