@@ -12,6 +12,9 @@ Sin IV (ahora mismo):
 |    contrasena del usuario)     | 
 |            256 bytes           |
 +--------------------------------+
+|      Hash de la contrasena     |
+|           (256 bits)           |
++--------------------------------+
 
 Con IV (si usasemos Metodo gcm de AES):
 
@@ -26,10 +29,10 @@ Con IV (si usasemos Metodo gcm de AES):
 |            256 bytes           |
 +--------------------------------+
 |   RSA Key encriptada con AES   |
-|  (La clave AES de esta es una  | 
+|  (La clave AES de esta es una  |
 |    contrasena del usuario)     |
 |            256 bytes           |
 +--------------------------------+
-
-
-
+|      Hash de la contrasena     |
+|           (256 bits)           |
++--------------------------------+
