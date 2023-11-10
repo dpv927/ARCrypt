@@ -23,5 +23,4 @@ void decryptFile_withAES(const char* inputFile, const char* keyFile);
 * @param RSAkeyFile Ruta del archivo de la clave privada RSA.
 * @param AESkey Buffer de longitud KEY_BYTES donde se va a guardar la clave desencriptada.
 * * * */
-void decryptAESKey_withRSA(const char* AESkeyFile, const char* RSAkeyFile, unsigned char AESkey [KEY_BYTES]);
-
+void decryptAESKey_withRSA(const char* AESkeyFile, const char* RSAkeyFile, unsigned char AESkey[AES_KEY_BYTES]);

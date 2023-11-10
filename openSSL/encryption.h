@@ -20,7 +20,4 @@ void encryptFile_withAES(const char* inputFile);
 * @param AESkeyFile Ruta de la clave AES a encriptar.
 * @param AESkey Buffer de longitud KEY_BYTES donde se va a guardar la clave encriptada.
 * * * */
-void encryptAESKey_withRSA(const char* AESkeyFile, unsigned char AESKey[KEY_BYTES]);
-
-
-// void encryptRSAKey_withAES(const char* inputFile, const char* passwd);
+void encryptAESKey_withRSA(const char* AESkeyFile, unsigned char AESKey[AES_KEY_BYTES]);

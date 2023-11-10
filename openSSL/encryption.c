@@ -19,7 +19,7 @@
 void encryptFile_withAES(const char* inputFile) {
   unsigned char inBuf[ENC_BUFF_SIZE];
   unsigned char outBuf[ENC_CIPHER_SIZE];
-  unsigned char key[KEY_BYTES];
+  unsigned char key[AES_KEY_BYTES];
   char input_file_cpy[FILE_PATH_BYTES];
   char outputFile[FILE_PATH_BYTES+4];
   struct stat inode_info;
@@ -150,7 +150,7 @@ void encryptFile_withAES(const char* inputFile) {
   encryptAESKey_withRSA(outputFile, key);
 }
 
-void encryptAESKey_withRSA(const char* AESkeyFile, unsigned char AESKey[KEY_BYTES]){
+void encryptAESKey_withRSA(const char* AESkeyFile, unsigned char AESKey[AES_KEY_BYTES]){
   char rsa_path[FILE_PATH_BYTES+8];
   unsigned char* raw_aes_key;
   int cipher_len;
@@ -188,7 +188,7 @@ void encryptAESKey_withRSA(const char* AESkeyFile, unsigned char AESKey[KEY_BYTE
   /* Encriptar la clave AES con la clave publica de RSA. En el metodo de desencriptacion
   * de la clave AES, se debera utilizar la clave privada RSA. */
   raw_aes_key = (unsigned char *) malloc(RSA_size(rsa_key));
-  cipher_len = RSA_public_encrypt(KEY_BYTES, AESKey, raw_aes_key, rsa_key, RSA_PKCS1_PADDING);
+  cipher_len = RSA_public_encrypt(AES_KEY_BYTES, AESKey, raw_aes_key, rsa_key, RSA_PKCS1_PADDING);
   RSA_free(rsa_key);
 
   /* Guardar en un archivo la clave AES encriptada */

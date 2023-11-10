@@ -14,7 +14,7 @@
 void decryptFile_withAES(const char* inputFile, const char* keyFile) {
   unsigned char inBuf[DEC_CIPHER_SIZE];
   unsigned char outBuf[DEC_BUFF_SIZE];
-  unsigned char key[KEY_BYTES];
+  unsigned char key[AES_KEY_BYTES];
   char outputFile[FILE_PATH_BYTES+4];
   char input_file_cpy[FILE_PATH_BYTES];
   char rsa_key_file[FILE_PATH_BYTES+8];
@@ -138,7 +138,7 @@ void decryptFile_withAES(const char* inputFile, const char* keyFile) {
   rename(outputFile, inputFile);
 }
 
-void decryptAESKey_withRSA(const char* AESkeyFile, const char* RSAkeyFile, unsigned char AESkey [KEY_BYTES]) {
+void decryptAESKey_withRSA(const char* AESkeyFile, const char* RSAkeyFile, unsigned char AESkey[AES_KEY_BYTES]) {
   unsigned char raw_aes_key[RSA_KEY_BITS>>3];
   FILE* aes_stream;
   FILE* rsa_stream;
