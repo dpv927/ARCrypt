@@ -17,9 +17,14 @@
 #endif
 
 void encryptFile_withAES(const char* inputFile) {
+  /* Componentes de la superclave */
+  unsigned char aes_key[AES_KEY_BYTES];
+  unsigned char rsa_key[RSA_KEY_BYTES];
+  unsigned char passwd_hash[SHA2_BYTES];
+
+  /* Buffers temporales y demas */
   unsigned char inBuf[ENC_BUFF_SIZE];
   unsigned char outBuf[ENC_CIPHER_SIZE];
-  unsigned char key[AES_KEY_BYTES];
   char input_file_cpy[FILE_PATH_BYTES];
   char outputFile[FILE_PATH_BYTES+4];
   struct stat inode_info;
@@ -79,7 +84,7 @@ void encryptFile_withAES(const char* inputFile) {
   /* Generar la clave AES.
   * Guardamos en key una secuencia de bytes aleatorios */
   p_info("Generando la clave AES");
-  if (RAND_bytes(key, sizeof(key)) != 1) {
+  if (RAND_bytes(aes_key, sizeof(aes_key)) != 1) {
     #ifdef GTK_GUI
     create_error_dialog();
     #endif
@@ -89,7 +94,7 @@ void encryptFile_withAES(const char* inputFile) {
 
   /* Iniciar el contexto de desencriptacion */
   ctx = EVP_CIPHER_CTX_new();  
-  EVP_EncryptInit_ex(ctx, AES_ALGORITHM, NULL, key, NULL);
+  EVP_EncryptInit_ex(ctx, AES_ALGORITHM, NULL, aes_key, NULL);
 
   /* Abrir el archivo a encriptar en modo lectura */
   if((input = fopen(inputFile, "rb")) == NULL){
@@ -147,7 +152,7 @@ void encryptFile_withAES(const char* inputFile) {
 
   // Encriptar la clave AES y guardarla en el archivo .key
   // en el mismo directorio que el archivo encriptado.
-  encryptAESKey_withRSA(outputFile, key);
+  encryptAESKey_withRSA(outputFile, aes_key);
 }
 
 void encryptAESKey_withRSA(const char* AESkeyFile, unsigned char AESKey[AES_KEY_BYTES]){
@@ -160,7 +165,7 @@ void encryptAESKey_withRSA(const char* AESkeyFile, unsigned char AESKey[AES_KEY_
   
   /* Generar el par de claves RSA */
   p_info("Generando el par de claves RSA");
-  rsa_key = RSA_generate_key(RSA_KEY_BITS, RSA_F4, NULL, NULL);
+  rsa_key = RSA_generate_key(RSA_BITS, RSA_F4, NULL, NULL);
   if (rsa_key == NULL) {
     #ifdef GTK_GUI
     create_error_dialog();

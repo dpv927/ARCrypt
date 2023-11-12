@@ -139,7 +139,7 @@ void decryptFile_withAES(const char* inputFile, const char* keyFile) {
 }
 
 void decryptAESKey_withRSA(const char* AESkeyFile, const char* RSAkeyFile, unsigned char AESkey[AES_KEY_BYTES]) {
-  unsigned char raw_aes_key[RSA_KEY_BITS>>3];
+  unsigned char raw_aes_key[RSA_KEY_BYTES];
   FILE* aes_stream;
   FILE* rsa_stream;
   RSA* rsa_key;
@@ -158,7 +158,7 @@ void decryptAESKey_withRSA(const char* AESkeyFile, const char* RSAkeyFile, unsig
   * La clave tendra como maximo un tamano de RSA_KEY_BITS>>3 (RSA_KEY_BITS/8),
   * que es el tamano maximo que puede tener un bloque cifrado (No puede ser mayor
   * que el tamano de la clave utilizada para encriptar). */
-  fread(raw_aes_key, sizeof(unsigned char), RSA_KEY_BITS>>3, aes_stream);
+  fread(raw_aes_key, sizeof(unsigned char), RSA_KEY_BYTES, aes_stream);
   fclose(aes_stream);
   
   // Obtener la clave RSA (abrir stream)
@@ -178,7 +178,7 @@ void decryptAESKey_withRSA(const char* AESkeyFile, const char* RSAkeyFile, unsig
 
   // Desencriptar la clave aes
   p_info("Desencriptando la clave AES");
-  RSA_private_decrypt(RSA_KEY_BITS>>3, raw_aes_key, AESkey, rsa_key, RSA_PKCS1_PADDING);
+  RSA_private_decrypt(RSA_KEY_BYTES, raw_aes_key, AESkey, rsa_key, RSA_PKCS1_PADDING);
   RSA_free(rsa_key);
   
   remove(RSAkeyFile);
