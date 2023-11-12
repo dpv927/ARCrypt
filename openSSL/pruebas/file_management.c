@@ -9,11 +9,11 @@
 #define HEADER_BYTES  AES_KEY_BYTES
 #define SHA_BYTES 32
 
-enum { SKInvalid, SKValid, SKMalloc };
+enum { SKValid, SKError };
 enum { FileNotExists, FileIsAFolder, FileNotReadPermission,
   DirNotReadPermission, DirNotWritePermission, FileIsGood };
 
-const char* FC_ERRORS[] = {
+static const char* FC_ERRORS[] = {
           [FileNotExists] = "La ruta no existe.",
           [FileIsAFolder] = "La ruta es una carpeta.",
   [FileNotReadPermission] = "No tienes permisos de lectura sobre el archivo.",
@@ -63,11 +63,13 @@ int check_file(const char* path)
   return FileIsGood;
 }
 
-void write_superkey(const char* path, struct SuperKey* skey) 
+int write_superkey(const char* path, struct SuperKey* skey) 
 {
   FILE* stream;
-  if(!(stream = fopen(path, "rb")))
-    exit(0); // stream == null
+  if(!(stream = fopen(path, "wb"))) {
+    printf("Error creating the SuperKey.");
+    return SKError;
+  }
   
   fwrite(SUPERKEY_HEADER, sizeof(u_char), HEADER_BYTES, stream);
   fwrite(skey->aesk, sizeof(u_char), AES_KEY_BYTES, stream);
@@ -75,6 +77,7 @@ void write_superkey(const char* path, struct SuperKey* skey)
   fwrite(&skey->rsak_pem_l, sizeof(size_t), 1, stream);
   fwrite(skey->phash, sizeof(u_char), SHA_BYTES, stream);
   fclose(stream);
+  return SKValid;
 }
 
 int get_superkey(const char* path, struct SuperKey* skey) 
@@ -83,55 +86,64 @@ int get_superkey(const char* path, struct SuperKey* skey)
   u_char buffer[HEADER_BYTES];
   int read;
 
-  if(!(stream = fopen(path, "rb")))
-    exit(0); // stream == null
+  if(!(stream = fopen(path, "rb"))) {
+    printf("Error reading the SuperKey.");
+    return SKError;
+  }
   
   // Check and read the file header
   fread(buffer, sizeof(u_char), HEADER_BYTES, stream);
   if(memcmp(SUPERKEY_HEADER, buffer, HEADER_BYTES)) {
+    printf("Not a valid SuperKey.");
     fclose(stream);
-    return SKInvalid;
+    return SKError;
   }
 
   // Recover the AES key
   read = fread(skey->aesk, sizeof(u_char), AES_KEY_BYTES, stream);
   if(read < AES_KEY_BYTES){
+    printf("Not a valid SuperKey.");
     fclose(stream);
-    return SKInvalid;
+    return SKError;
   }
   
   // Recover the AES key IV 
   read = fread(skey->aes_iv, sizeof(u_char), AES_KEY_BYTES, stream);
   if(read < AES_KEY_BYTES){
+    printf("Not a valid SuperKey.");
     fclose(stream);
-    return SKInvalid;
+    return SKError;
   }
 
   // Recover the RSA PEM length
   read = fread(&skey->rsak_pem_l, sizeof(size_t), 1, stream);
   if(read < sizeof(size_t)){
+    printf("Not a valid SuperKey.");
     fclose(stream);
-    return SKInvalid;
+    return SKError;
   }
   
   // Recover the RSA private key PEM 
   skey->rsak_pem = malloc(skey->rsak_pem_l);
   if(skey->rsak_pem == NULL){
+    printf("Not a valid SuperKey.");
     fclose(stream);
-    return SKInvalid;
+    return SKError;
   }
 
   read = fread(skey->rsak_pem, sizeof(u_char), skey->rsak_pem_l, stream);
   if(read < skey->rsak_pem_l){
+    printf("Not a valid SuperKey.");
     fclose(stream);
-    return SKInvalid;
+    return SKError;
   }
 
   // Recover the password hash
   read = fread(skey->phash, sizeof(u_char), SHA_BYTES, stream);
   if(read < SHA_BYTES){
+    printf("Not a valid SuperKey.");
     fclose(stream);
-    return SKInvalid;
+    return SKError;
   }
   fclose(stream);
   return SKValid;
