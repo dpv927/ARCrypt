@@ -1,3 +1,4 @@
+#include <linux/limits.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -12,9 +13,8 @@ void init_term(void) {
   /* Mostar el logo */
   system("clear");
   FILE* ptr = fopen("extra/logo.txt", "r");
-  if(ptr == NULL) {
-    perror("No se encuentra el archivo de inicio.");
-  }
+  if(ptr == NULL)
+    p_error("No se encuentra el archivo de inicio.");
   char buff[100];
 
   while (fgets(buff, sizeof(buff), ptr) != NULL)
@@ -25,13 +25,24 @@ void init_term(void) {
   /* Obtener el modo */
   getAppMode(&data);
   getModeData(&data);
-   
+
+  //data.mode = DECRYPTION_MODE;
+  char passwd[AES_KEY_BYTES] = "pepe";
+  //strcpy(data.file_path, "i.png");
+
   switch (data.mode) {
     case ENCRYPTION_MODE:
-      encryptFile_withAES(data.file_path);
+      encryptFile(
+        data.file_path,
+        passwd
+      );
       break;
     case DECRYPTION_MODE:
-      decryptFile_withAES(data.file_path, data.key_path);
+      decryptFile(
+        data.file_path,
+        passwd,
+        data.key_path
+      );
       break;
   }
 }
@@ -62,7 +73,7 @@ void getAppMode(OperationData* d) {
 }
 
 void getModeData(OperationData* d) {
-  char input[2048];
+  char input[PATH_MAX];
 
   switch (d->mode) {
     case ENCRYPTION_MODE:    
