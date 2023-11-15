@@ -1,26 +1,19 @@
 #pragma once
 
+#include <stdlib.h>
 #include "params.h"
 
 #define DEC_BUFF_SIZE     8192
 #define DEC_CIPHER_SIZE   DEC_BUFF_SIZE
-#define DEC_ELEMENT_BYTES sizeof(unsigned char)
 
-/* @brief Desencripta un archivo dada una clave AES. La funcion supone que existe un archivo
-* con el mismo nombre que la clave con la extension ".rsa", que contiene la clave privada RSA
-* para poder desencriptar la clave AES. 
-* 
-* @param inputFile Ruta del archivo a desencriptar.
-* @param keyFile Ruta del archivo que contiene la clave encriptada.
-* @param iv Vector de inicializacion (Normalmente NULL).
-* * * */
-void decryptFile_withAES(const char* inputFile, const char* keyFile);
+// --- Funcion principal
+void decryptFile(const char* inputFile, const char* passwd, const char* keyFile);
 
-/* @brief Desencripta un archivo que contiene una clave AES dada la ruta de la clave privada
-* RSA que se necesita para desencriptar dicha clave AES.
-* 
-* @param AESkeyFile Ruta del archivo de la clave AES a desencriptar.
-* @param RSAkeyFile Ruta del archivo de la clave privada RSA.
-* @param AESkey Buffer de longitud KEY_BYTES donde se va a guardar la clave desencriptada.
-* * * */
-void decryptAESKey_withRSA(const char* AESkeyFile, const char* RSAkeyFile, unsigned char AESkey[AES_KEY_BYTES]);
+// --- Desencriptar clave RSA con AES
+int decryptRSAKey_withAES(const u_char* cipher_rsa_key, u_char* rsa_key, const size_t rsa_len, 
+  const u_char aes_key[AES_KEY_BYTES], const u_char aes_key_iv[AES_IV_BYTES]);
+
+// --- Desencriptar clave AES y su IV con RSA
+void decryptAES_withRSA(const u_char cipher_aes_key[RSA_KEY_BYTES], u_char aes_key[AES_KEY_BYTES],
+  const u_char cipher_aes_iv[RSA_KEY_BYTES], u_char aesk_iv[AES_IV_BYTES], unsigned char* rsa_skey, size_t rsa_keylen);
+
