@@ -11,6 +11,7 @@ typedef struct {
   uint8_t mode;
   char file_path[PATH_MAX];
   char key_path[PATH_MAX];
+  char passwd[AES_KEY_BYTES];
 } OperationData;
 
 /* @brief Inicia la aplicacion en modo terminal. 

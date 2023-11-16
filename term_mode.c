@@ -10,7 +10,7 @@
 void init_term(void) {
   OperationData data;
 
-  /* Mostar el logo */
+  /* Mostrar el logo */
   system("clear");
   FILE* ptr = fopen("extra/logo.txt", "r");
   if(ptr == NULL)
@@ -27,20 +27,19 @@ void init_term(void) {
   getModeData(&data);
 
   //data.mode = DECRYPTION_MODE;
-  char passwd[AES_KEY_BYTES] = "pepe";
   //strcpy(data.file_path, "i.png");
 
   switch (data.mode) {
     case ENCRYPTION_MODE:
       encryptFile(
         data.file_path,
-        passwd
+        data.passwd
       );
       break;
     case DECRYPTION_MODE:
       decryptFile(
         data.file_path,
-        passwd,
+        data.passwd,
         data.key_path
       );
       break;
@@ -80,9 +79,12 @@ void getModeData(OperationData* d) {
       next_line()
       print_title("Encriptacion")
       user_input("Ruta del archivo a encriptar", "%s", input)
-      next_line()
-
       strcpy(d->file_path, input);
+
+      user_input("Password", "%s", input)
+      strcpy(d->passwd, input);
+      next_line()
+      
       break;
 
     case DECRYPTION_MODE:
@@ -93,7 +95,11 @@ void getModeData(OperationData* d) {
 
       user_input("Ruta de la clave", "%s", input)
       strcpy(d->key_path, input);
+
+      user_input("Password", "%s", input)
+      strcpy(d->passwd, input);
       next_line()
+
       break;
     }
 }
