@@ -7,35 +7,78 @@
 
 int write_superkey(const char* path, const struct SuperKey* skey) {
     FILE* file;
+    int write_bytes;
+
     if (!(file = fopen(path, "wb"))) {
+        p_error("No se pudo crear el archivo de la superclave")
+        return SKError;
+    }
+    
+    // Escribir la cabecera de la superclave
+    write_bytes = fwrite(SUPERKEY_HEADER, sizeof(u_char), HEADER_BYTES, file);
+    if (write_bytes < HEADER_BYTES) {
+        p_error("No se pudo escribir la cabecera.")
         return SKError;
     }
 
-    fwrite(SUPERKEY_HEADER, sizeof(u_char), HEADER_BYTES, file);
-    fwrite(skey->aes, sizeof(u_char), RSA_KEY_BYTES, file);
-    fwrite(&(skey->rsa_len), sizeof(size_t), 1, file);
-    fwrite(skey->rsa, sizeof(u_char), skey->rsa_len, file);
-    fwrite(skey->phash, sizeof(u_char), SHA2_BYTES, file);
+    // Escribir la clave AES encriptada
+    write_bytes = fwrite(skey->aes, sizeof(u_char), RSA_KEY_BYTES, file);
+    if (write_bytes < RSA_KEY_BYTES) {
+        p_error("No se pudo escribir la clave AES.")
+        return SKError;
+    }
+
+    // Escribir la longitud del PEM de la clave privada RSA
+    write_bytes = fwrite(&(skey->rsa_len), sizeof(size_t), 1, file);
+    if (write_bytes < 1) {
+        p_error("No se pudo escribir la longitud de RSA.")
+        return SKError;
+    }
+
+    // Escribir el PEM de la clave privada RSA
+    write_bytes = fwrite(skey->rsa, sizeof(u_char), skey->rsa_len, file);
+    if (write_bytes < skey->rsa_len) {
+        p_error("No se pudo escribir la clave RSA.")
+        return SKError;
+    }
+
+    // Escribir el hash de la contrasena del usuario
+    write_bytes = fwrite(skey->phash, sizeof(u_char), SHA2_BYTES, file);
+    if (write_bytes < SHA2_BYTES) {
+        p_error("No se pudo escribir el hash del passwd.")
+        return SKError;
+    }
+
     fclose(file);
     return SKValid;
 }
 
 int get_superkey(const char* path, struct SuperKey* skey) {
-    FILE* file = fopen(path, "rb");
-    if (!file) {
-        return SKError; // Error al abrir el archivo
+    FILE* file;
+    int read_bytes;
+    u_char buffer[HEADER_BYTES];
+
+    if (!(file = fopen(path, "rb"))) {
+        p_error("No se pudo abrir el archivo de la superclave")
+        return SKError;
     }
 
     // Leer la cabecera y verificar que sea válida
-    u_char header[HEADER_BYTES];
-    fread(header, sizeof(u_char), HEADER_BYTES, file);
-    if (memcmp(header, SUPERKEY_HEADER, HEADER_BYTES) != 0) {
+    read_bytes = fread(buffer, sizeof(u_char), HEADER_BYTES, file);
+    if (read_bytes < HEADER_BYTES || memcmp(buffer, SUPERKEY_HEADER, HEADER_BYTES) != 0) {
+        p_error("No es una superclave: La cabecera no coincide")
         fclose(file);
-        return SKError; // Cabecera no válida
+        return SKError;
     }
 
-    // Leer los campos de la estructura SuperKey
-    fread(skey->aes, sizeof(u_char), RSA_KEY_BYTES, file);
+    // Leer la clave AES encriptada
+    read_bytes = fread(skey->aes, sizeof(u_char), RSA_KEY_BYTES, file);
+    if (read_bytes < RSA_KEY_BYTES) {
+        p_error("No es una superclave: No contiene una clave AES")
+        fclose(file);
+        return SKError;
+    }
+
     fread(&(skey->rsa_len), sizeof(size_t), 1, file);
 
     // Reservar memoria para rsak_pem y leer el PEM de la clave privada RSA
