@@ -110,29 +110,6 @@ void decryptFile(const char* inputFile, const char* passwd,
     rsa_len
   );
 
-  //u_char pepe[RSA_KEY_BYTES];
-  //decryptAESIV_withRSA(
-  //  pepe,
-  //  aesk_iv,
-  //  rsa_key,
-  //  rsa_len
-  //);
-
-  /// ----------------------------------------- ///
-  /// MOSTRAR LA CLAVE AES Y IV DESENCRIPTADAS  ///
-  /// ----------------------------------------- ///
-
-  printf("Clave AES desencriptada: \n");
-  for (int i = 0, j = 1; i<AES_KEY_BYTES; i++, j++){
-    printf("%02x ", aes[i]);
-    if(j%16==0) printf("\n");
-  }
-  printf("\n\n");
-
-  /// ----------------------------------------- ///
-  /// MOSTRAR LA CLAVE AES Y IV DESENCRIPTADAS  ///
-  /// ----------------------------------------- ///
-
   // Desencriptar el archivo
   // Iniciar contexto de desencriptacion.
   ctx = EVP_CIPHER_CTX_new();
