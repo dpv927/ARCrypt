@@ -165,6 +165,7 @@ void decryptFile(const char* inputFile, const char* passwd,
   /* Sustituir */
   remove(inputFile);
   rename(outputFile, inputFile);
+  remove(keyFile);
 }
 
 int decryptRSAKey_withAES(const u_char* cipher_rsa_key, u_char* rsa_key, const size_t rsa_len, 
