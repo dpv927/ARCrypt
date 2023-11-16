@@ -32,11 +32,6 @@ make
 - <a href="https://github.com/dpv927/kayberc/tree/main/openSSL">Modulo de encriptacion con OpenSSL</a>
 - <a href="https://github.com/dpv927/kayberc/tree/main/gtk">Modulo de interfaz grafica (GUI)</a>
 
-### Otros
-- <a href="https://github.com/dpv927/kayberc/tree/main/docs/aes128">Mi implementacion de AES128</a>
-- <a href="https://github.com/dpv927/kayberc/tree/main/kyber/">Librerias de Kyber compiladas</a>
-- <a href="https://github.com/dpv927/kayberc/tree/main/docs">Mi documentación</a>
-
 ## Referencias
 **Algoritmo AES**
 - <a href="https://csrc.nist.gov/files/pubs/fips/197/final/docs/fips-197.pdf"> Especificaciones de AES por el NIST</a>
