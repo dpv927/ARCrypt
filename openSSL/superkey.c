@@ -79,14 +79,37 @@ int get_superkey(const char* path, struct SuperKey* skey) {
         return SKError;
     }
 
-    fread(&(skey->rsa_len), sizeof(size_t), 1, file);
+    // Leer la longitud del PEM de la clave privada RSA
+    read_bytes = fread(&(skey->rsa_len), sizeof(size_t), 1, file);
+    if (read_bytes < 1) {
+        p_error("No es una superclave: No contiene la longitud de RSA")
+        fclose(file);
+        return SKError;
+    }
 
     // Reservar memoria para rsak_pem y leer el PEM de la clave privada RSA
     skey->rsa = (u_char*)malloc(skey->rsa_len);
-    fread(skey->rsa, sizeof(u_char), skey->rsa_len, file);
+    if (!skey->rsa) { // skey->rsa == null
+        p_error("No se pudo reservar memoria para la clave RSA")
+        fclose(file);
+        return SKError;
+    }
+    
+    read_bytes = fread(skey->rsa, sizeof(u_char), skey->rsa_len, file);
+    if (read_bytes < skey->rsa_len) {
+        p_error("No es una superclave: No contiene una clave RSA")
+        fclose(file);
+        return SKError;
+    }
 
     // Leer el hash de la contraseña
-    fread(skey->phash, sizeof(u_char), SHA2_BYTES, file);
+    read_bytes = fread(skey->phash, sizeof(u_char), SHA2_BYTES, file);
+    if (read_bytes < SHA2_BYTES) {
+        p_error("No es una superclave: No contiene el hash del password")
+        fclose(file);
+        return SKError;
+    }
+
     fclose(file);
     return SKValid;
 }
