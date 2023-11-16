@@ -26,14 +26,12 @@ void encryptFile(const char* inputFile, const char passwd[AES_KEY_BYTES]);
 /// 
 /// @param aes_key Buffer de la clave AES a encriptar.
 /// @param cipher_aes_key Buffer donde guardar la clave AES encriptada.
-/// @param aesk_iv Buffer que contiene la clave IV de AES
-/// @param cipher_aesk_iv Buffer donde guardar el IV encriptado 
 /// @param RSA_PEM_len Puntero a una variable donde se guardará la longitud de la clave RSA.
 ///
 /// @return Puntero a la clave privada RSA reservada con malloc. 
 ///
-u_char* encryptAES_withRSA(const u_char aesk[AES_KEY_BYTES], u_char cipher_aesk[RSA_KEY_BYTES],
-  u_char aesk_iv[AES_IV_BYTES], u_char cipher_aesk_iv[RSA_KEY_BYTES], size_t* RSA_PEM_len);
+u_char* encryptAESKey_withRSA(const u_char aesk[AES_KEY_BYTES], 
+  u_char cipher_aesk[RSA_KEY_BYTES], size_t* RSA_PEM_len);
 
 ///
 /// @brief Encripta un buffer que contiene la clave privada RSA con AES, utilizando como clave la contraseña  

@@ -40,9 +40,6 @@
 /// |    AES Key encriptada con RSA  | 
 /// |            256 bytes           | 
 /// +--------------------------------+ 
-/// |      IV encriptado con RSA     | 
-/// |            256 bytes           | 
-/// +--------------------------------+ 
 /// |      Longitud del RSA PEM      | 
 /// |         (sizeof size_t)        | 
 /// +--------------------------------+
@@ -73,15 +70,6 @@ struct SuperKey {
   /// máxima de RSA_KEY_BYTES.
   ///
   u_char aesk[RSA_KEY_BYTES];
-
-  ///
-  /// @brief aes_iv: Vector de inicialización (IV) que se
-  /// ha utilizado junto a @aesk para encriptar el archivo
-  /// objetivo. Al igual que @aesk, dependiendo del instante
-  /// del programa, puede que este encriptada con una clave
-  /// RSA publica o en texto plano.
-  ///
-  u_char aes_iv[RSA_KEY_BYTES];
   
   ///
   /// @brief rsak_pem: Buffer que contiene el PEM de la clave

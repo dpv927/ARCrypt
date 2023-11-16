@@ -22,7 +22,7 @@ void encryptFile(const char* inputFile, const char passwd[AES_KEY_BYTES])
   /* Todas las claves utilizadas */
   struct SuperKey session_sk;
   u_char aesk[AES_KEY_BYTES];
-  u_char aesk_iv[AES_IV_BYTES];
+  u_char usr_iv[AES_IV_BYTES];
   u_char* rsak_pem;
   
   /* Buffers temporales y demas */
@@ -59,20 +59,9 @@ void encryptFile(const char* inputFile, const char passwd[AES_KEY_BYTES])
     exit(EXIT_FAILURE);
   }
   
-  /* Generar el IV de la clave AES.
-  * Guardamos en aesk_iv una secuencia de bytes aleatorios */
-  p_info("Generando el IV de la clave AES");
-  if (RAND_bytes(aesk_iv, AES_KEY_BYTES) != 1) {
-    #ifdef GTK_GUI
-    create_error_dialog();
-    #endif
-    p_error("Error: No se pudo generar la clave AES");
-    exit(EXIT_FAILURE);
-  }
-  
   /* Iniciar el contexto de encriptacion */
   ctx = EVP_CIPHER_CTX_new();  
-  EVP_EncryptInit_ex(ctx, AES_ALGORITHM, NULL, aesk, aesk_iv);
+  EVP_EncryptInit_ex(ctx, AES_ALGORITHM, NULL, aesk, NULL);
 
   /* Abrir el archivo a encriptar en modo lectura */
   if((input = fopen(inputFile, "rb")) == NULL){
@@ -123,18 +112,38 @@ void encryptFile(const char* inputFile, const char passwd[AES_KEY_BYTES])
   // Encriptar la clave AES y guardarla en session_sk.aesk.
   // La clave privada RSA se guardara en session_sk.rsak_pem
   p_info("Encriptando la clave AES con RSA")
-  rsak_pem = encryptAES_withRSA(
+
+  printf("Clave AES generada: \n");
+  for (int i = 0, j = 1; i<AES_KEY_BYTES; i++, j++){
+    printf("%02x ", aesk[i]);
+    if(j%16==0) printf("\n");
+  }
+  printf("\n\n");
+
+  rsak_pem = encryptAESKey_withRSA(
     aesk,
     session_sk.aesk,
-    aesk_iv,
-    session_sk.aes_iv,
     &session_sk.rsak_pem_l
   );
+
+  printf("Clave AES encriptada: \n");
+  for (int i = 0, j = 1; i<RSA_KEY_BYTES; i++, j++){
+    printf("%02x ", session_sk.aesk[i]);
+    if(j%16==0) printf("\n");
+  }
+  printf("\n\n");
+
+  printf("PEM de RSA generada: \n");
+  for (int i = 0, j = 1; i<session_sk.rsak_pem_l; i++, j++){
+    printf("%02x ", rsak_pem[i]);
+    if(j%16==0) printf("\n");
+  }
+  printf("\n\n");
 
   // Encriptar la clave RSA con AES. La clave AES en esta ocasion 
   // sera la contrasena del usuario y el IV una derivacion de esta.
   p_info("Encriptando la clave RSA con AES personal")
-  derive_AES_key((u_char*) passwd, aesk_iv);
+  derive_AES_key((u_char*) passwd, usr_iv);
 
   session_sk.rsak_pem = malloc(session_sk.rsak_pem_l+128);
   if(!session_sk.rsak_pem) {
@@ -147,7 +156,7 @@ void encryptFile(const char* inputFile, const char passwd[AES_KEY_BYTES])
     session_sk.rsak_pem,
     session_sk.rsak_pem_l,
     (u_char*) passwd,
-    aesk_iv
+    usr_iv
   );
 
   if(val == -1) {
@@ -158,6 +167,13 @@ void encryptFile(const char* inputFile, const char passwd[AES_KEY_BYTES])
     exit(EXIT_FAILURE);
   } else session_sk.rsak_pem_l = val;
   
+  printf("PEM de RSA generada encriptada: \n");
+  for (int i = 0, j = 1; i<session_sk.rsak_pem_l; i++, j++){
+    printf("%02x ", session_sk.rsak_pem[i]);
+    if(j%16==0) printf("\n");
+  }
+  printf("\n\n");
+
   // Calcular el hash de la contrasena
   // El valor del hash (resumen se guardara en session_sk.phash)
   p_info("Calculando el hash (resumen) de la contrasena")
@@ -187,8 +203,8 @@ void encryptFile(const char* inputFile, const char passwd[AES_KEY_BYTES])
   //
 }
 
-u_char* encryptAES_withRSA(const u_char aesk[AES_KEY_BYTES], u_char cipher_aesk[RSA_KEY_BYTES],
-  u_char aesk_iv[AES_IV_BYTES], u_char cipher_aesk_iv[RSA_KEY_BYTES], size_t* RSA_PEM_len)
+u_char* encryptAESKey_withRSA(const u_char aesk[AES_KEY_BYTES],
+  u_char cipher_aesk[RSA_KEY_BYTES], size_t* RSA_PEM_len)
 {
   EVP_PKEY *rsa_keypair = NULL;
   EVP_PKEY_CTX *ctx;
@@ -209,10 +225,6 @@ u_char* encryptAES_withRSA(const u_char aesk[AES_KEY_BYTES], u_char cipher_aesk[
   EVP_PKEY_encrypt_init(ctx);
   EVP_PKEY_CTX_set_rsa_padding(ctx, RSA_PKCS1_OAEP_PADDING);
   EVP_PKEY_encrypt(ctx, cipher_aesk, &outlen, aesk, AES_KEY_BYTES);
-  //EVP_PKEY_CTX_free(ctx);
-
-  // Encrypt AES IV with RSA 
-  EVP_PKEY_encrypt(ctx, cipher_aesk_iv, &outlen, aesk_iv, AES_IV_BYTES);
   EVP_PKEY_CTX_free(ctx);
   
   // Write RSA private key to mem 
@@ -243,34 +255,5 @@ int encryptRSAKey_withAES(const u_char* rsa_key, u_char* cipher_rsa_key, const s
   EVP_EncryptFinal_ex(ctx, cipher_rsa_key+len, &len);
   cipher_len += len;
   EVP_CIPHER_CTX_free(ctx);
-
-  //u_char cipher1[rsa_len];
-  //u_char cipher2[rsa_len];
-  //int cipher_len;
-  //int pad_len;
-  //int total_len;
-
-  /*
-  ctx = EVP_CIPHER_CTX_new();  
-  EVP_EncryptInit_ex(ctx, AES_ALGORITHM, NULL, aes_key, aes_key_iv);
-  EVP_EncryptUpdate(ctx, cipher1, &cipher_len, rsa_key, rsa_len);
-  memcpy(cipher2, cipher1, cipher_len);
-*/
-  /* Quizas hay que anadir un padding */
-  /*EVP_EncryptFinal_ex(ctx, cipher1, &pad_len);
-  EVP_CIPHER_CTX_free(ctx);
-  */
-  /* Hay que redimensionar la clave al nuevo tamano de la clave */
-/*  rsa_key = (u_char*) realloc(rsa_key, total_len = cipher_len+pad_len);
-  if(rsa_key == NULL) {
-    return -1;
-  }
-*/
-  // La clave encriptada sera cipher2+cipher1
-  // Por culpa de openssl no se pude hacer en solo 1 paso.
-  //memcpy(rsa_key, cipher2, cipher_len);
-  //memcpy(rsa_key+cipher_len, cipher1, pad_len);
-  //return total_len;
-  //
   return cipher_len;
 }

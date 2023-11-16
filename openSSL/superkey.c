@@ -5,90 +5,48 @@
 #include "superkey.h"
 #include "../utils/messages.h"
 
-int write_superkey(const char* path, const struct SuperKey* skey) 
-{
-  FILE* stream;
-  if(!(stream = fopen(path, "wb"))) {
-    p_error("Error creating the SuperKey.");
-    return SKError;
-  }
-  
-  fwrite(SUPERKEY_HEADER, sizeof(u_char), HEADER_BYTES, stream);
-  fwrite(skey->aesk, sizeof(u_char), AES_KEY_BYTES, stream);
-  fwrite(skey->aes_iv, sizeof(u_char), AES_KEY_BYTES, stream);
-  fwrite(&skey->rsak_pem_l, sizeof(size_t), 1, stream);
-  fwrite(&skey->rsak_pem, sizeof(u_char), skey->rsak_pem_l, stream);
-  fwrite(skey->phash, sizeof(u_char), SHA2_BYTES, stream);
-  fclose(stream);
-  return SKValid;
+
+
+int write_superkey(const char* path, const struct SuperKey* skey) {
+    FILE* file;
+    if (!(file = fopen(path, "wb"))) {
+        return SKError;
+    }
+
+    fwrite(SUPERKEY_HEADER, sizeof(u_char), HEADER_BYTES, file);
+    fwrite(skey->aesk, sizeof(u_char), RSA_KEY_BYTES, file);
+    fwrite(&(skey->rsak_pem_l), sizeof(size_t), 1, file);
+    fwrite(skey->rsak_pem, sizeof(u_char), skey->rsak_pem_l, file);
+    fwrite(skey->phash, sizeof(u_char), SHA2_BYTES, file);
+    fclose(file);
+    return SKValid;
 }
 
-int get_superkey(const char* path, struct SuperKey* skey) 
-{
-  FILE* stream;
-  u_char buffer[HEADER_BYTES];
-  int read;
-  
-  if(!(stream = fopen(path, "rb"))) {
-    p_error("Error reading the SuperKey (stream).");
-    return SKError;
-  }
-  
-  // Check and read the file header
-  fread(buffer, sizeof(u_char), HEADER_BYTES, stream);
-  
-  if(memcmp(SUPERKEY_HEADER, buffer, HEADER_BYTES)) {
-    p_error("La clave no es valida: Falso encabezado.");
-    fclose(stream);
-    return SKError;
-  }
+int get_superkey(const char* path, struct SuperKey* skey) {
+    FILE* file = fopen(path, "rb");
+    if (!file) {
+        return SKError; // Error al abrir el archivo
+    }
 
-  // Recover the AES key
-  read = fread(skey->aesk, sizeof(u_char), AES_KEY_BYTES, stream);
-  if(read < AES_KEY_BYTES){
-    p_error("La clave no es valida: No se encuentra la clave AES");
-    fclose(stream);
-    return SKError;
-  }
-  
-  // Recover the AES key IV 
-  read = fread(skey->aes_iv, sizeof(u_char), AES_KEY_BYTES, stream);
-  if(read < AES_KEY_BYTES){
-    p_error("La clave no es valida: No se encuentra el IV de la clave AES");
-    fclose(stream);
-    return SKError;
-  }
+    // Leer la cabecera y verificar que sea válida
+    u_char header[HEADER_BYTES];
+    fread(header, sizeof(u_char), HEADER_BYTES, file);
+    if (memcmp(header, SUPERKEY_HEADER, HEADER_BYTES) != 0) {
+        fclose(file);
+        return SKError; // Cabecera no válida
+    }
 
-  // Recover the RSA PEM length
-  read = fread(&skey->rsak_pem_l, sizeof(size_t), 1, stream);
-  if(read < 1){
-    p_error("La clave no es valida: No se encuentra la longitud RSA");
-    fclose(stream);
-    return SKError;
-  }
+    // Leer los campos de la estructura SuperKey
+    fread(skey->aesk, sizeof(u_char), RSA_KEY_BYTES, file);
+    fread(&(skey->rsak_pem_l), sizeof(size_t), 1, file);
 
-  // Recover the RSA private key PEM 
-  skey->rsak_pem = malloc(skey->rsak_pem_l);
-  if(skey->rsak_pem == NULL){
-    p_error("No se pudo reservar la memoria suficiente para la clave RSA.");
-    fclose(stream);
-    return SKError;
-  }
+    // Reservar memoria para rsak_pem y leer el PEM de la clave privada RSA
+    skey->rsak_pem = (u_char*)malloc(skey->rsak_pem_l);
+    fread(skey->rsak_pem, sizeof(u_char), skey->rsak_pem_l, file);
 
-  read = fread(skey->rsak_pem, sizeof(u_char), skey->rsak_pem_l, stream);
-  if(read < skey->rsak_pem_l){
-    p_error("La clave no es valida: No se encuentra la clave RSA");
-    fclose(stream);
-    return SKError;
-  }
+    // Leer el hash de la contraseña
+    fread(skey->phash, sizeof(u_char), SHA2_BYTES, file);
 
-  // Recover the password hash
-  read = fread(skey->phash, sizeof(u_char), SHA2_BYTES, stream);
-  if(read < SHA2_BYTES){
-    p_error("La clave no es valida: No se encuentra el hash de la contrasena");
-    fclose(stream);
-    return SKError;
-  }
-  fclose(stream);
-  return SKValid;
+    fclose(file);
+    return SKValid;
 }
