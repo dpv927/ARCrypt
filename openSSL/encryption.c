@@ -193,6 +193,7 @@ u_char* encryptAESKey_withRSA(const u_char aesk[AES_KEY_BYTES],
   size_t pending;
 
   // Create a new RSA Keypair
+  p_info_tabbed("Generando el par de claves RSA")
   ctx = EVP_PKEY_CTX_new_id(EVP_PKEY_RSA, NULL);
   EVP_PKEY_keygen_init(ctx);
   EVP_PKEY_CTX_set_rsa_keygen_bits(ctx, 2048);
@@ -200,6 +201,7 @@ u_char* encryptAESKey_withRSA(const u_char aesk[AES_KEY_BYTES],
   EVP_PKEY_CTX_free(ctx);
 
   // Encrypt AES key with RSA 
+  p_info_tabbed("Finalizando encriptacion")
   ctx = EVP_PKEY_CTX_new(rsa_keypair, NULL);
   EVP_PKEY_encrypt_init(ctx);
   EVP_PKEY_CTX_set_rsa_padding(ctx, RSA_PKCS1_OAEP_PADDING);
@@ -227,6 +229,7 @@ int encryptRSAKey_withAES(const u_char* rsa_key, u_char* cipher_rsa_key, const s
   int cipher_len;
   int len;
  
+  p_info_tabbed("Iniciando encriptacion")
   ctx = EVP_CIPHER_CTX_new();
   EVP_EncryptInit_ex(ctx, AES_ALGORITHM, NULL, aes_key, aes_key_iv);
   EVP_EncryptUpdate(ctx, cipher_rsa_key, &len, rsa_key, rsa_len);
@@ -234,5 +237,6 @@ int encryptRSAKey_withAES(const u_char* rsa_key, u_char* cipher_rsa_key, const s
   EVP_EncryptFinal_ex(ctx, cipher_rsa_key+len, &len);
   cipher_len += len;
   EVP_CIPHER_CTX_free(ctx);
+  p_info_tabbed("Encriptacion finalizada")
   return cipher_len;
 }

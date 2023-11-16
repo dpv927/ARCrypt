@@ -69,7 +69,10 @@ void decryptFile(const char* inputFile, const char* passwd,
   // Calcular el hash de la contrasena que se ha pasado
   // y comprobar si es la que se utilizo para encriptar el archivo. 
   p_info("Comprobando si la contrasena es correcta.")
+  p_info_tabbed("Calculando el hash del password")
   calculateHash((const u_char*) passwd, AES_KEY_BYTES, phash);
+  
+  p_info_tabbed("Comprobando si las claves coinciden")
   if(memcmp(superkey.phash, phash, SHA2_BYTES)){
     #ifdef GTK_GUI
     create_error_dialog();
