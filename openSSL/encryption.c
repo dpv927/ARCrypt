@@ -20,10 +20,10 @@
 void encryptFile(const char* inputFile, const char passwd[AES_KEY_BYTES]) 
 {
   /* Todas las claves utilizadas */
-  struct SuperKey session_sk;
-  u_char aesk[AES_KEY_BYTES];
+  struct SuperKey superkey;
+  u_char gen_aes_key[AES_KEY_BYTES];
   u_char usr_iv[AES_IV_BYTES];
-  u_char* rsak_pem;
+  u_char* gen_rsa_pem;
   
   /* Buffers temporales y demas */
   u_char inBuf[ENC_BUFF_SIZE];
@@ -51,7 +51,7 @@ void encryptFile(const char* inputFile, const char passwd[AES_KEY_BYTES])
   /* Generar la clave AES.
   * Guardamos en aesk una secuencia de bytes aleatorios */
   p_info("Generando la clave AES");
-  if (RAND_bytes(aesk, AES_KEY_BYTES) != 1) {
+  if (RAND_bytes(gen_aes_key, AES_KEY_BYTES) != 1) {
     #ifdef GTK_GUI
     create_error_dialog();
     #endif
@@ -61,7 +61,7 @@ void encryptFile(const char* inputFile, const char passwd[AES_KEY_BYTES])
   
   /* Iniciar el contexto de encriptacion */
   ctx = EVP_CIPHER_CTX_new();  
-  EVP_EncryptInit_ex(ctx, AES_ALGORITHM, NULL, aesk, NULL);
+  EVP_EncryptInit_ex(ctx, AES_ALGORITHM, NULL, gen_aes_key, NULL);
 
   /* Abrir el archivo a encriptar en modo lectura */
   if((input = fopen(inputFile, "rb")) == NULL){
@@ -109,52 +109,33 @@ void encryptFile(const char* inputFile, const char passwd[AES_KEY_BYTES])
   remove(inputFile);
   rename(outputFile, inputFile);
 
-  // Encriptar la clave AES y guardarla en session_sk.aesk.
-  // La clave privada RSA se guardara en session_sk.rsak_pem
+  // ------------------------------------------
+  // || Encriptar clave AES generada con RSA ||
+  // ------------------------------------------
   p_info("Encriptando la clave AES con RSA")
-
-  printf("Clave AES generada: \n");
-  for (int i = 0, j = 1; i<AES_KEY_BYTES; i++, j++){
-    printf("%02x ", aesk[i]);
-    if(j%16==0) printf("\n");
-  }
-  printf("\n\n");
-
-  rsak_pem = encryptAESKey_withRSA(
-    aesk,
-    session_sk.aesk,
-    &session_sk.rsak_pem_l
+  gen_rsa_pem = encryptAESKey_withRSA(
+    gen_aes_key,
+    superkey.aes,
+    &superkey.rsa_len
   );
 
-  printf("Clave AES encriptada: \n");
-  for (int i = 0, j = 1; i<RSA_KEY_BYTES; i++, j++){
-    printf("%02x ", session_sk.aesk[i]);
-    if(j%16==0) printf("\n");
-  }
-  printf("\n\n");
-
-  printf("PEM de RSA generada: \n");
-  for (int i = 0, j = 1; i<session_sk.rsak_pem_l; i++, j++){
-    printf("%02x ", rsak_pem[i]);
-    if(j%16==0) printf("\n");
-  }
-  printf("\n\n");
-
-  // Encriptar la clave RSA con AES. La clave AES en esta ocasion 
-  // sera la contrasena del usuario y el IV una derivacion de esta.
+  // ------------------------------------------
+  // || Encriptar clave RSA con AES personal ||
+  // ------------------------------------------
   p_info("Encriptando la clave RSA con AES personal")
   derive_AES_key((u_char*) passwd, usr_iv);
 
-  session_sk.rsak_pem = malloc(session_sk.rsak_pem_l+128);
-  if(!session_sk.rsak_pem) {
+  superkey.rsa = malloc(superkey.rsa_len+128);
+  if(!superkey.rsa) {
+    free(gen_rsa_pem);
     p_error("No se puedo reservar la memoria a la clave RSA.")
     exit(EXIT_FAILURE);
   }
 
   val = encryptRSAKey_withAES(
-    rsak_pem,
-    session_sk.rsak_pem,
-    session_sk.rsak_pem_l,
+    gen_rsa_pem,
+    superkey.rsa,
+    superkey.rsa_len,
     (u_char*) passwd,
     usr_iv
   );
@@ -163,25 +144,22 @@ void encryptFile(const char* inputFile, const char passwd[AES_KEY_BYTES])
     #ifdef GTK_GUI
     create_error_dialog();
     #endif
+    free(gen_rsa_pem);
+    free(superkey.rsa);
     p_error("No se pudo encriptar la clave AES con RSA")
     exit(EXIT_FAILURE);
-  } else session_sk.rsak_pem_l = val;
+  } else superkey.rsa_len = val;
   
-  printf("PEM de RSA generada encriptada: \n");
-  for (int i = 0, j = 1; i<session_sk.rsak_pem_l; i++, j++){
-    printf("%02x ", session_sk.rsak_pem[i]);
-    if(j%16==0) printf("\n");
-  }
-  printf("\n\n");
 
-  // Calcular el hash de la contrasena
-  // El valor del hash (resumen se guardara en session_sk.phash)
+  // ------------------------------------------
+  // ||     Calcular Hash de la contrasena   ||
+  // ------------------------------------------
   p_info("Calculando el hash (resumen) de la contrasena")
-  calculateHash((const u_char*) passwd, AES_KEY_BYTES, session_sk.phash);
+  calculateHash((const u_char*) passwd, AES_KEY_BYTES, superkey.phash);
 
-  /* Generar el nombre del archivo con la superclave. 
-  * Tendra el mismo nombre que el archivo a encriptar pero con 
-  * la extension ".key". */
+  // ------------------------------------------
+  // ||      Generar la Superclave           ||
+  // ------------------------------------------
   p_info("Generando la Superclave")
   strcpy((char*) outBuf, inputFile);
   strcpy(outputFile, dirname((char*)outBuf));
@@ -189,18 +167,17 @@ void encryptFile(const char* inputFile, const char passwd[AES_KEY_BYTES])
   strcat(outputFile, basename((char*)inputFile));
   strcat(outputFile, ".key");
 
-  val = write_superkey(outputFile, &session_sk);
+  val = write_superkey(outputFile, &superkey);
   if(val == SKError) {
     #ifdef GTK_GUI
     create_error_dialog();
     #endif
     p_error("No se puedo escribir la superclave.");
-    exit(EXIT_FAILURE);
   }
 
-  // TODO Calcular el hash de la superclave?
-  // 
-  //
+  // Liberar
+  free(gen_rsa_pem);
+  free(superkey.rsa);
 }
 
 u_char* encryptAESKey_withRSA(const u_char aesk[AES_KEY_BYTES],
@@ -225,7 +202,7 @@ u_char* encryptAESKey_withRSA(const u_char aesk[AES_KEY_BYTES],
   EVP_PKEY_encrypt_init(ctx);
   EVP_PKEY_CTX_set_rsa_padding(ctx, RSA_PKCS1_OAEP_PADDING);
   EVP_PKEY_encrypt(ctx, cipher_aesk, &outlen, aesk, AES_KEY_BYTES);
-  EVP_PKEY_CTX_free(ctx);
+  //EVP_PKEY_CTX_free(ctx);
   
   // Write RSA private key to mem 
   rsa_bio = BIO_new(BIO_s_mem());
@@ -237,6 +214,7 @@ u_char* encryptAESKey_withRSA(const u_char aesk[AES_KEY_BYTES],
 
   // Free all that stuff!
   BIO_free(rsa_bio);
+  EVP_PKEY_CTX_free(ctx);
   EVP_PKEY_free(rsa_keypair);
   return rsa_skey;
 }

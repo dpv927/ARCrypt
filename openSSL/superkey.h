@@ -69,7 +69,7 @@ struct SuperKey {
   /// con RSA y se guarde en este campo con una longitud
   /// máxima de RSA_KEY_BYTES.
   ///
-  u_char aesk[RSA_KEY_BYTES];
+  u_char aes[RSA_KEY_BYTES];
   
   ///
   /// @brief rsak_pem: Buffer que contiene el PEM de la clave
@@ -78,13 +78,13 @@ struct SuperKey {
   /// del programa, puede que este encriptada con AES o
   /// en texto plano.
   ///
-  u_char* rsak_pem;
+  u_char* rsa;
   
   ///
   /// @brief rsak_pem_l: Longitud en bytes del PEM de la clave
   /// privada RSA.
   ///
-  size_t rsak_pem_l;
+  size_t rsa_len;
 
   ///
   /// @brief phash: Buffer de longitud SHA2_BYTES que contiene 

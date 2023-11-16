@@ -18,10 +18,10 @@ void decryptFile(const char* inputFile, const char* passwd,
   const char* keyFile) 
 {
   /* Todas las claves utilizadas */
-  struct SuperKey session_sk;
+  struct SuperKey superkey;
   u_char phash[SHA2_BYTES];
-  u_char aesk_iv[AES_IV_BYTES];
-  u_char aesk[AES_KEY_BYTES];
+  u_char usr_iv[AES_IV_BYTES];
+  u_char aes[AES_KEY_BYTES];
   int rsa_len;
 
   // Otros buffers y datos
@@ -53,13 +53,13 @@ void decryptFile(const char* inputFile, const char* passwd,
   // de forma que obtenemos todas las claves protegidas y 
   // el hash de la contrasenacon la que se encripto el archivo.
   p_info("Recuperando la superclave")
-  val = get_superkey(keyFile, &session_sk);
+  val = get_superkey(keyFile, &superkey);
   if(val == SKError) {
     #ifdef GTK_GUI
     create_error_dialog();
     #endif
-    if(!session_sk.rsak_pem) 
-      free(session_sk.rsak_pem);
+    if(!superkey.rsa) 
+      free(superkey.rsa);
     exit(EXIT_FAILURE);
   }
 
@@ -67,73 +67,28 @@ void decryptFile(const char* inputFile, const char* passwd,
   // y comprobar si es la que se utilizo para encriptar el archivo.
   p_info("Comprobando si la contrasena es correcta.")
   calculateHash((const u_char*) passwd, AES_KEY_BYTES, phash);
-  if(memcmp(session_sk.phash, phash, SHA2_BYTES)){
+  if(memcmp(superkey.phash, phash, SHA2_BYTES)){
     #ifdef GTK_GUI
     create_error_dialog();
     #endif
     p_error("La contrasena es incorrecta.");
-    free(session_sk.rsak_pem);
+    free(superkey.rsa);
     exit(EXIT_FAILURE);
   }
-
-  /// ----------------------------------------- ///
-  /// MOSTRAR LOS DATOS ENCRIPTADOS             ///
-  /// ----------------------------------------- ///
-
-  printf("Clave AES encriptada: \n");
-  for (int i = 0, j = 1; i<RSA_KEY_BYTES; i++, j++){
-    printf("%02x ", session_sk.aesk[i]);
-    if(j%16==0) printf("\n");
-  }
-  printf("\n\n");
-
-  printf("PEM de RSA generada encriptada: \n");
-  for (int i = 0, j = 1; i<session_sk.rsak_pem_l; i++, j++){
-    printf("%02x ", session_sk.rsak_pem[i]);
-    if(j%16==0) printf("\n");
-  }
-  printf("\n\n");
-
-  /// ----------------------------------------- ///
-  /// MOSTRAR LOS DATOS ENCRIPTADOS             ///
-  /// ----------------------------------------- ///
 
   // Desencriptar la clave RSA con AES.
   // Antes que nada hay que generar el IV pertinente mediante la derivacion
   // de la clave AES (contrasena que el usuario eligio).
   p_info("Desencriptando la clave RSA con AES")
-  derive_AES_key((u_char*) passwd, aesk_iv);
+  derive_AES_key((u_char*) passwd, usr_iv);
   
-
-  /// ----------------------------------------- ///
-  /// MOSTRAR LA CONTRASENA Y EL IV DEL USUARIO ///
-  /// ----------------------------------------- ///
-
-  printf("Clave del usuario: \n");
-  for (int i = 0, j = 1; i<AES_KEY_BYTES; i++, j++){
-    printf("%02x ", passwd[i]);
-    if(j%16==0) printf("\n");
-  }
-  printf("\n\n");
-
-  printf("IV de la clave del usuario: \n");
-  for (int i = 0, j = 1; i<AES_IV_BYTES; i++, j++){
-    printf("%02x ", aesk_iv[i]);
-    if(j%16==0) printf("\n");
-  }
-  printf("\n\n");
-
-  /// ----------------------------------------- ///
-  /// MOSTRAR LA CONTRASENA Y EL IV DEL USUARIO ///
-  /// ----------------------------------------- ///
-
-  u_char rsa_key[session_sk.rsak_pem_l+128];
+  u_char rsa_key[superkey.rsa_len+128];
   rsa_len = decryptRSAKey_withAES(
-    session_sk.rsak_pem,
+    superkey.rsa,
     rsa_key,
-    session_sk.rsak_pem_l,
+    superkey.rsa_len,
     (u_char*) passwd,
-    aesk_iv
+    usr_iv
   );
 
   if(rsa_len == -1) {
@@ -141,42 +96,27 @@ void decryptFile(const char* inputFile, const char* passwd,
     create_error_dialog();
     #endif
     p_error("No se pudo desencriptar la clave RSA con AES")
-    free(session_sk.rsak_pem);
+    free(superkey.rsa);
     exit(EXIT_FAILURE);
-  } else session_sk.rsak_pem_l = val;
-  free(session_sk.rsak_pem);
-
-  /// ----------------------------------------- ///
-  /// MOSTRAR LA CLAVE RSA DESENCRIPTADA        ///
-  /// ----------------------------------------- ///
-
-  printf("Clave RSA desencriptada: \n");
-  for (int i = 0, j = 1; i<rsa_len; i++, j++){
-    printf("%02x ", rsa_key[i]);
-    if(j%16==0) printf("\n");
-  }
-  printf("\n\n");
-
-  /// ----------------------------------------- ///
-  /// MOSTRAR LA CLAVE RSA DESENCRIPTADA        ///
-  /// ----------------------------------------- ///
+  } else superkey.rsa_len = val;
+  free(superkey.rsa);
 
   // Desencriptar la clave AES y su IV con RSA
-  p_info("Desencriptando la clave AES y su IV con RSA")
+  p_info("Desencriptando la clave AES con RSA")
   decryptAESKey_withRSA(
-    session_sk.aesk,
-    aesk,
+    superkey.aes,
+    aes,
     rsa_key,
     rsa_len
   );
 
-  u_char pepe[RSA_KEY_BYTES];
-  decryptAESIV_withRSA(
-    pepe,
-    aesk_iv,
-    rsa_key,
-    rsa_len
-  );
+  //u_char pepe[RSA_KEY_BYTES];
+  //decryptAESIV_withRSA(
+  //  pepe,
+  //  aesk_iv,
+  //  rsa_key,
+  //  rsa_len
+  //);
 
   /// ----------------------------------------- ///
   /// MOSTRAR LA CLAVE AES Y IV DESENCRIPTADAS  ///
@@ -184,17 +124,10 @@ void decryptFile(const char* inputFile, const char* passwd,
 
   printf("Clave AES desencriptada: \n");
   for (int i = 0, j = 1; i<AES_KEY_BYTES; i++, j++){
-    printf("%02x ", aesk[i]);
+    printf("%02x ", aes[i]);
     if(j%16==0) printf("\n");
   }
   printf("\n\n");
-
-  //printf("Clave IV desencriptada: \n");
-  //for (int i = 0, j = 1; i<AES_IV_BYTES; i++, j++){
-  //  printf("%02x ", aesk_iv[i]);
-  //  if(j%16==0) printf("\n");
-  //}
-  //printf("\n\n");
 
   /// ----------------------------------------- ///
   /// MOSTRAR LA CLAVE AES Y IV DESENCRIPTADAS  ///
@@ -203,7 +136,7 @@ void decryptFile(const char* inputFile, const char* passwd,
   // Desencriptar el archivo
   // Iniciar contexto de desencriptacion.
   ctx = EVP_CIPHER_CTX_new();
-  EVP_DecryptInit_ex(ctx, AES_ALGORITHM, NULL, aesk, NULL);
+  EVP_DecryptInit_ex(ctx, AES_ALGORITHM, NULL, aes, NULL);
     
   /* Abrir stream en el archivo a desencriptar. */
   if((input = fopen(inputFile, "rb")) == NULL){
@@ -274,10 +207,10 @@ int decryptRSAKey_withAES(const u_char* cipher_rsa_key, u_char* rsa_key, const s
   return plaintext_len;
 }
 
-void decryptAESKey_withRSA(const u_char cipher_aesk[RSA_KEY_BYTES], u_char aesk[AES_KEY_BYTES],
-  unsigned char* rsa_skey, size_t rsa_keylen)
+void decryptAESKey_withRSA(const unsigned char* cipher_aes_key, 
+  unsigned char* aes_key, unsigned char* rsa_skey, size_t rsa_keylen)
 {
-  EVP_PKEY* evp_rsa_key;
+  EVP_PKEY* evp_rsa_key = NULL;
   EVP_PKEY_CTX* ctx;
   BIO* rsa_bio;
   size_t outlen;
@@ -292,32 +225,7 @@ void decryptAESKey_withRSA(const u_char cipher_aesk[RSA_KEY_BYTES], u_char aesk[
   ctx = EVP_PKEY_CTX_new(evp_rsa_key, NULL);
   EVP_PKEY_decrypt_init(ctx);
   EVP_PKEY_CTX_set_rsa_padding(ctx, RSA_PKCS1_OAEP_PADDING);
-  EVP_PKEY_decrypt(ctx, aesk, &outlen, cipher_aesk, RSA_KEY_BYTES);
-
-  // Free all that stuff!
-  EVP_PKEY_CTX_free(ctx);
-  EVP_PKEY_free(evp_rsa_key);
-}
-
-void decryptAESIV_withRSA(const u_char cipher_aesk_iv[RSA_KEY_BYTES], u_char aesk_iv[AES_IV_BYTES],
-  unsigned char* rsa_skey, size_t rsa_keylen)
-{
-  EVP_PKEY* evp_rsa_key;
-  EVP_PKEY_CTX* ctx;
-  BIO* rsa_bio;
-  size_t outlen;
-
-  // Read RSA private key from mem
-  rsa_bio = BIO_new(BIO_s_mem());
-  BIO_write(rsa_bio, rsa_skey, rsa_keylen);
-  evp_rsa_key = PEM_read_bio_PrivateKey_ex(rsa_bio, NULL, NULL, NULL, NULL, NULL);
-  BIO_free(rsa_bio); 
-  
-  // Decrypt AES key with RSA 
-  ctx = EVP_PKEY_CTX_new(evp_rsa_key, NULL);
-  EVP_PKEY_decrypt_init(ctx);
-  EVP_PKEY_CTX_set_rsa_padding(ctx, RSA_PKCS1_OAEP_PADDING);
-  EVP_PKEY_decrypt(ctx, aesk_iv, &outlen, cipher_aesk_iv, RSA_KEY_BYTES);
+  EVP_PKEY_decrypt(ctx, aes_key, &outlen, cipher_aes_key, RSA_KEY_BYTES);
 
   // Free all that stuff!
   EVP_PKEY_CTX_free(ctx);

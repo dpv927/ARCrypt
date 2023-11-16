@@ -5,8 +5,6 @@
 #include "superkey.h"
 #include "../utils/messages.h"
 
-
-
 int write_superkey(const char* path, const struct SuperKey* skey) {
     FILE* file;
     if (!(file = fopen(path, "wb"))) {
@@ -14,9 +12,9 @@ int write_superkey(const char* path, const struct SuperKey* skey) {
     }
 
     fwrite(SUPERKEY_HEADER, sizeof(u_char), HEADER_BYTES, file);
-    fwrite(skey->aesk, sizeof(u_char), RSA_KEY_BYTES, file);
-    fwrite(&(skey->rsak_pem_l), sizeof(size_t), 1, file);
-    fwrite(skey->rsak_pem, sizeof(u_char), skey->rsak_pem_l, file);
+    fwrite(skey->aes, sizeof(u_char), RSA_KEY_BYTES, file);
+    fwrite(&(skey->rsa_len), sizeof(size_t), 1, file);
+    fwrite(skey->rsa, sizeof(u_char), skey->rsa_len, file);
     fwrite(skey->phash, sizeof(u_char), SHA2_BYTES, file);
     fclose(file);
     return SKValid;
@@ -37,16 +35,15 @@ int get_superkey(const char* path, struct SuperKey* skey) {
     }
 
     // Leer los campos de la estructura SuperKey
-    fread(skey->aesk, sizeof(u_char), RSA_KEY_BYTES, file);
-    fread(&(skey->rsak_pem_l), sizeof(size_t), 1, file);
+    fread(skey->aes, sizeof(u_char), RSA_KEY_BYTES, file);
+    fread(&(skey->rsa_len), sizeof(size_t), 1, file);
 
     // Reservar memoria para rsak_pem y leer el PEM de la clave privada RSA
-    skey->rsak_pem = (u_char*)malloc(skey->rsak_pem_l);
-    fread(skey->rsak_pem, sizeof(u_char), skey->rsak_pem_l, file);
+    skey->rsa = (u_char*)malloc(skey->rsa_len);
+    fread(skey->rsa, sizeof(u_char), skey->rsa_len, file);
 
     // Leer el hash de la contraseña
     fread(skey->phash, sizeof(u_char), SHA2_BYTES, file);
-
     fclose(file);
     return SKValid;
 }
