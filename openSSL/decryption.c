@@ -63,8 +63,11 @@ void decryptFile(const char* inputFile, const char* passwd,
     exit(EXIT_FAILURE);
   }
 
+  // ------------------------------------------
+  // ||      Comprobar password con hash     ||
+  // ------------------------------------------
   // Calcular el hash de la contrasena que se ha pasado
-  // y comprobar si es la que se utilizo para encriptar el archivo.
+  // y comprobar si es la que se utilizo para encriptar el archivo. 
   p_info("Comprobando si la contrasena es correcta.")
   calculateHash((const u_char*) passwd, AES_KEY_BYTES, phash);
   if(memcmp(superkey.phash, phash, SHA2_BYTES)){
@@ -76,9 +79,9 @@ void decryptFile(const char* inputFile, const char* passwd,
     exit(EXIT_FAILURE);
   }
 
-  // Desencriptar la clave RSA con AES.
-  // Antes que nada hay que generar el IV pertinente mediante la derivacion
-  // de la clave AES (contrasena que el usuario eligio).
+  // ------------------------------------------
+  // ||      Desencriptar RSA con AES        ||
+  // ------------------------------------------
   p_info("Desencriptando la clave RSA con AES")
   derive_AES_key((u_char*) passwd, usr_iv);
   
@@ -101,7 +104,9 @@ void decryptFile(const char* inputFile, const char* passwd,
   } else superkey.rsa_len = val;
   free(superkey.rsa);
 
-  // Desencriptar la clave AES y su IV con RSA
+  // ------------------------------------------
+  // ||      Desencriptar AES con RSA        ||
+  // ------------------------------------------
   p_info("Desencriptando la clave AES con RSA")
   decryptAESKey_withRSA(
     superkey.aes,
@@ -110,7 +115,9 @@ void decryptFile(const char* inputFile, const char* passwd,
     rsa_len
   );
 
-  // Desencriptar el archivo
+  // ------------------------------------------
+  // ||   Desencriptar el fichero objetivo   ||
+  // ------------------------------------------
   // Iniciar contexto de desencriptacion.
   ctx = EVP_CIPHER_CTX_new();
   EVP_DecryptInit_ex(ctx, AES_ALGORITHM, NULL, aes, NULL);
@@ -138,15 +145,7 @@ void decryptFile(const char* inputFile, const char* passwd,
     exit(EXIT_FAILURE);
   }
   
-  /* Este es el bucle principal del motor de desencriptacion. 
-  * El funcionamiento basico es obtener DEC_CIPHER_SIZE (es una tamano cualquiera (p.e 8kb)) bytes del 
-  * archivo a desencriptar, los guarda en el buffer inBuf y con ayuda de la funcion @EVP_DecryptUpdate,
-  * descifra los datos de inBuf y los guarda en outBuf.
-  * 
-  * Por otro lado, necesitamos llevar cuenta de los bytes que leemos del archivo a desencriptar, ya que no
-  * siempre vamos a poder leer DEC_CIPHER_SIZE bytes (p.e el archivo no tiene un multiplo de DEC_CIPHER_SIZE
-  * bytes o simplemente es mas pequeno que DEC_CIPHER_SIZE). De esta manera, podemos escribir la informacion
-  * descifrada en el archivo temporal (ni mas ni menos). */
+  /* Desencriptar de 8kb en 8kb */
   p_infoString("Desencriptando el archivo", inputFile)
   while ((bytesRead = fread(inBuf, sizeof(u_char), DEC_CIPHER_SIZE, input)) > 0) {
     EVP_DecryptUpdate(ctx, outBuf, &outLen, inBuf, bytesRead);

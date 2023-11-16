@@ -5,8 +5,8 @@ CFLAGS=-Ofast -march=native -mtune=native
 OPENSSL_SRCS = ./openSSL/encryption.c ./openSSL/decryption.c ./openSSL/files.c ./openSSL/hash.c ./openSSL/iv_kdf.c ./openSSL/superkey.c
 GUI_SRCS = gui_mode.c ./gtk/dialogs.c ./gtk/gui.c
 TERM_SRCS = term_mode.c 
-TARGET_TERM=aes
-TARGET_GUI=aes-gui
+TARGET_TERM=kyberc
+TARGET_GUI=kyberc-gui
 
 # --- Flags OpenSSL ---
 OPENSSLLIBS=-I /usr/include/openssl

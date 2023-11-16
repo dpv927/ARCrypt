@@ -60,7 +60,7 @@
 
 struct SuperKey {
   ///
-  /// @brief aesk: Clave AES utilizada para encriptar
+  /// @brief aes: Clave AES utilizada para encriptar
   /// el archivo objetivo. Al final del proceso debe
   /// estar encriptada con una clave publica RSA. 
   /// 
@@ -72,7 +72,7 @@ struct SuperKey {
   u_char aes[RSA_KEY_BYTES];
   
   ///
-  /// @brief rsak_pem: Buffer que contiene el PEM de la clave
+  /// @brief rsa: Buffer que contiene el PEM de la clave
   /// privada RSA con la que se deberá posteriormente desencriptar
   /// la clave AES @aesk y su IV @aes_iv. Dependiendo del punto
   /// del programa, puede que este encriptada con AES o
@@ -81,7 +81,7 @@ struct SuperKey {
   u_char* rsa;
   
   ///
-  /// @brief rsak_pem_l: Longitud en bytes del PEM de la clave
+  /// @brief rsa_len: Longitud en bytes del PEM de la clave
   /// privada RSA.
   ///
   size_t rsa_len;

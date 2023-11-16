@@ -6,19 +6,39 @@
 #define DEC_BUFF_SIZE     8192
 #define DEC_CIPHER_SIZE   DEC_BUFF_SIZE
 
-// --- Funcion principal
+///
+/// @brief Desencripta un archivo dada una superclave con
+/// el que se encripto.
+/// 
+/// @param inputFile Ruta del archivo a encriptar
+/// @param passwd Contrasena con la que el usuario encripto el archivo
+/// @param keyFile Ruta de la superclave
+///
 void decryptFile(const char* inputFile, const char* passwd, const char* keyFile);
 
-// --- Desencriptar clave RSA con AES
+///
+/// @brief Desencripta una clave privada RSA con AES, dada una clave y su IV. 
+/// Tener en cuenta que la clave sera la password del usuario y el IV una
+/// derivacion de dicha password.
+/// 
+/// @param cipher_rsa_key Buffer donde esta almacenada la clave privada RSA 
+/// que fue encriptada con AES.
+/// @param rsa_key Buffer donde se va a guardar la clave privada RSA desencriptada
+/// @param rsa_len Longitud del buffer de la clave RSA encriptada.
+/// @param aes_key Clave AES.
+/// @param aes_key_iv IV de AES.
+///
 int decryptRSAKey_withAES(const u_char* cipher_rsa_key, u_char* rsa_key, const size_t rsa_len, 
   const u_char aes_key[AES_KEY_BYTES], const u_char aes_key_iv[AES_IV_BYTES]);
 
-// --- Desencriptar clave AES con RSA
-// void decryptAESKey_withRSA(const u_char cipher_aes_key[RSA_KEY_BYTES], u_char aes_key[AES_KEY_BYTES],
-//  unsigned char* rsa_skey, size_t rsa_keylen);
-
+///
+/// @brief Desencripta una clave AES con la que se encripto el archivo en un principio,
+/// dada la clave privada RSA necesaria para desencriptarla.
+/// 
+/// @param cipher_aes_key Buffer con la clave AES a desencriptar.
+/// @param aesk Buffer donde guardar la clave AES desencriptada.
+/// @param rsa_skey Buffer con la clave privada RSA.
+/// @param rsa_keylen Longitud de la clave privada RSA.
+///
 void decryptAESKey_withRSA(const u_char cipher_aesk[RSA_KEY_BYTES], u_char aesk[AES_KEY_BYTES],
-  unsigned char* rsa_skey, size_t rsa_keylen);
-
-  void decryptAESIV_withRSA(const u_char cipher_aesk_iv[RSA_KEY_BYTES], u_char aesk_iv[AES_IV_BYTES],
   unsigned char* rsa_skey, size_t rsa_keylen);

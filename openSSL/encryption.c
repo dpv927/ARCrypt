@@ -88,9 +88,11 @@ void encryptFile(const char* inputFile, const char passwd[AES_KEY_BYTES])
     exit(EXIT_FAILURE);
   }
   
-  /* Obtener ENC_BUFF_SIZE bytes del archivo a encriptar, encriptarlos
-   * y escribirlos en el archivo de encriptado destino. */
+  // ------------------------------------------
+  // ||     Encriptar el archivo objetivo    ||
+  // ------------------------------------------
   p_infoString("Encriptando", inputFile)
+  /* Encriptar de 8kb en 8kb */
   while ((bytesRead = fread(inBuf, sizeof(u_char), ENC_BUFF_SIZE, input)) > 0) {
     EVP_EncryptUpdate(ctx, outBuf, &outLen, inBuf, bytesRead);
     fwrite(outBuf, sizeof(u_char), outLen, output);
@@ -152,7 +154,7 @@ void encryptFile(const char* inputFile, const char passwd[AES_KEY_BYTES])
   
 
   // ------------------------------------------
-  // ||     Calcular Hash de la contrasena   ||
+  // ||      Calcular Hash del password      ||
   // ------------------------------------------
   p_info("Calculando el hash (resumen) de la contrasena")
   calculateHash((const u_char*) passwd, AES_KEY_BYTES, superkey.phash);
@@ -202,7 +204,6 @@ u_char* encryptAESKey_withRSA(const u_char aesk[AES_KEY_BYTES],
   EVP_PKEY_encrypt_init(ctx);
   EVP_PKEY_CTX_set_rsa_padding(ctx, RSA_PKCS1_OAEP_PADDING);
   EVP_PKEY_encrypt(ctx, cipher_aesk, &outlen, aesk, AES_KEY_BYTES);
-  //EVP_PKEY_CTX_free(ctx);
   
   // Write RSA private key to mem 
   rsa_bio = BIO_new(BIO_s_mem());
