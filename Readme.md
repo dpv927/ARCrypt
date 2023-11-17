@@ -28,13 +28,10 @@ make
 ```
 
 ## Contenidos
-### Modulos
-- <a href="https://github.com/dpv927/kayberc/tree/main/openSSL">Modulo de encriptacion con OpenSSL</a>
-- <a href="https://github.com/dpv927/kayberc/tree/main/gtk">Modulo de interfaz grafica (GUI)</a>
-
-### Otros
+- <a href="https://github.com/dpv927/kayberc/tree/main/openSSL">Mi implementacion de encriptacion de archivos con AES de OpenSSL</a>
 - <a href="https://github.com/dpv927/kayberc/tree/main/docs/aes128">Mi implementacion de AES128</a>
-- <a href="https://github.com/dpv927/kayberc/tree/main/kyber/">Librerias de Kayber compiladas</a>
+- <a href="https://github.com/dpv927/kayberc/tree/main/gtk">Ejemplo de GUI con GTK</a>
+- <a href="https://github.com/dpv927/kayberc/tree/main/kyber/">Librerias de Kayber</a>
 - <a href="https://github.com/dpv927/kayberc/tree/main/docs">Mi documentación</a>
 
 ## Referencias

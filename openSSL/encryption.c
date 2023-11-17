@@ -16,39 +16,21 @@
 #include "../gtk/dialogs.h"
 #endif
 
-void encryptFile_withAES(const char* inputFile) {
-  /* Componentes de la superclave */
-  unsigned char aes_key[AES_KEY_BYTES];
-  unsigned char rsa_key[RSA_KEY_BYTES];
-  unsigned char passwd_hash[SHA2_BYTES];
-
-  /* Buffers temporales y demas */
+void encryptFile(const char* inputFile, const unsigned char* iv) {
+  EVP_CIPHER_CTX* ctx;
   unsigned char inBuf[ENC_BUFF_SIZE];
   unsigned char outBuf[ENC_CIPHER_SIZE];
+  unsigned char key[KEY_BYTES];
   char input_file_cpy[FILE_PATH_BYTES];
   char outputFile[FILE_PATH_BYTES+4];
   struct stat inode_info;
-  EVP_CIPHER_CTX* ctx;
   char* dir_name;
   FILE* input;
   FILE* output;
   int bytesRead;
   int outLen;
 
-  /* Comprobar informacion basica sobre la ruta del fichero objetivo.
-  * Hay que comprobar si el usuario esta queriendo acceder an archivo al que no tiene
-  * acceso, no existe o es una carpeta. 
-  *
-  * La encriptacion de carpetas no esta soportada ya que no se trata de un fichero
-  * regular, es decir, no podemos leer los bytes en bruto de la carpeta porque 
-  * la carpeta no es mas que una 'estructura' en la cual los archivos que contiene
-  * 'apuntan' a esta. Por lo tanto, leer los bytes de dicha carpeta no seria lo mismo
-  * que leer los bytes de cada uno de los archivos que contiene.
-  * 
-  * Para solucionar esto, se podria aplicar una funcion de encriptacion recursiva a 
-  * cada uno de los archivos de dicho directorio, o mas sencillo aun, comprimir dicha
-  * carpeta en cualquier formato y encriptarla ya que en este ultimo caso si se trataria
-  * de un fichero regular. */
+  /* Comprobar informacion basica */
   if(stat(inputFile, &inode_info)) {
     #ifdef GTK_GUI
     create_error_dialog();
@@ -64,15 +46,10 @@ void encryptFile_withAES(const char* inputFile) {
     exit(EXIT_FAILURE);
   }
 
-  /* Ver si el usuario tiene permisos de lectura/escritura y acceso sobre el 
-  * directorio en el que se encuentra el archivo a encriptar.
-  *
-  * Es importante verificar esto ya que el usuario puede tener permisos de lectura
-  *  en el directorio objetivo, pero no de escritura, y eso es muy importante a la 
-  * hora de generar y eliminar los archivos en operaciones posteriores. */
+  /* Ver si el usuario tiene permisos de lectura/escritura sobre el directorio en
+  * el que se encuentra el archivo a encriptar. */
   strcpy(input_file_cpy, inputFile);
   dir_name = dirname((char*) input_file_cpy);
-
   if (access(dir_name, W_OK | X_OK | R_OK)) {
     #ifdef GTK_GUI
     create_error_dialog();
@@ -81,10 +58,9 @@ void encryptFile_withAES(const char* inputFile) {
     exit(EXIT_FAILURE);
   }
 
-  /* Generar la clave AES.
-  * Guardamos en key una secuencia de bytes aleatorios */
+  /* Generar la clave */
   p_info("Generando la clave AES");
-  if (RAND_bytes(aes_key, sizeof(aes_key)) != 1) {
+  if (RAND_bytes(key, sizeof(key)) != 1) {
     #ifdef GTK_GUI
     create_error_dialog();
     #endif
@@ -92,9 +68,8 @@ void encryptFile_withAES(const char* inputFile) {
     exit(EXIT_FAILURE);
   }
 
-  /* Iniciar el contexto de desencriptacion */
   ctx = EVP_CIPHER_CTX_new();  
-  EVP_EncryptInit_ex(ctx, AES_ALGORITHM, NULL, aes_key, NULL);
+  EVP_EncryptInit_ex(ctx, AES_ALGORITHM, NULL, key, iv);
 
   /* Abrir el archivo a encriptar en modo lectura */
   if((input = fopen(inputFile, "rb")) == NULL){
@@ -105,9 +80,6 @@ void encryptFile_withAES(const char* inputFile) {
     exit(EXIT_FAILURE);
   };
 
-  /* Generar el nombre del archivo de encriptado temporal.
-  * Tendra el mismo nombre que el original pero con la extension ".enc". Se 
-  * encontrara en el mismo directorio que el archivo a encriptar.  */
   strcpy(outputFile, inputFile);
   strcat(outputFile, ".enc");
 
@@ -142,20 +114,31 @@ void encryptFile_withAES(const char* inputFile) {
   remove(inputFile);
   rename(outputFile, inputFile);
 
-  /* Generar el nombre del archivo con la clave AES. 
-  * Tendra el mismo nombre que el archivo a encriptar pero con 
-  * la extension ".key". */
+  /* Crear archivo con la clave */
   strcpy(outputFile, dir_name);
   strcat(outputFile, "/");
   strcat(outputFile, basename((char*)inputFile));
   strcat(outputFile, ".key");
 
-  // Encriptar la clave AES y guardarla en el archivo .key
-  // en el mismo directorio que el archivo encriptado.
-  encryptAESKey_withRSA(outputFile, aes_key);
+  //* Generar el archivo con la clave 
+  p_infoString("Guardando la clave AES en", outputFile);
+  if((output = fopen(outputFile, "wb")) == NULL) {
+    #ifdef GTK_GUI
+    create_error_dialog();
+    #endif
+    p_error("No se pudo crear el archivo de la clave");
+    exit(EXIT_FAILURE);
+  }
+
+  fwrite(key, ENC_ELEMENT_BYTES, KEY_BYTES, output);
+  fclose(output);
+
+  // Encriptar la clave AES
+  encryptKey(outputFile);
 }
 
-void encryptAESKey_withRSA(const char* AESkeyFile, unsigned char AESKey[AES_KEY_BYTES]){
+void encryptKey(const char* AESkeyFile){
+  unsigned char aes_key[KEY_BYTES];
   char rsa_path[FILE_PATH_BYTES+8];
   unsigned char* raw_aes_key;
   int cipher_len;
@@ -165,7 +148,7 @@ void encryptAESKey_withRSA(const char* AESkeyFile, unsigned char AESKey[AES_KEY_
   
   /* Generar el par de claves RSA */
   p_info("Generando el par de claves RSA");
-  rsa_key = RSA_generate_key(RSA_BITS, RSA_F4, NULL, NULL);
+  rsa_key = RSA_generate_key(RSA_KEY_BITS, RSA_F4, NULL, NULL);
   if (rsa_key == NULL) {
     #ifdef GTK_GUI
     create_error_dialog();
@@ -173,6 +156,18 @@ void encryptAESKey_withRSA(const char* AESkeyFile, unsigned char AESKey[AES_KEY_
     p_error("Error al crear el par de claves RSA");
     exit(EXIT_FAILURE);
   }
+
+  /* Obtener la clave AES */
+  if((aes_stream = fopen(AESkeyFile, "r")) == NULL) {
+    #ifdef GTK_GUI
+    create_error_dialog();
+    #endif
+    p_error("No se pudo abrir el archivo de la clave AES");
+    exit(EXIT_FAILURE);
+  }
+
+  fread(aes_key, ENC_ELEMENT_BYTES, KEY_BYTES, aes_stream);
+  fclose(aes_stream);
 
   /* Escribir la clave privada RSA en un archivo */
   strcpy(rsa_path, AESkeyFile);
@@ -193,7 +188,7 @@ void encryptAESKey_withRSA(const char* AESkeyFile, unsigned char AESKey[AES_KEY_
   /* Encriptar la clave AES con la clave publica de RSA. En el metodo de desencriptacion
   * de la clave AES, se debera utilizar la clave privada RSA. */
   raw_aes_key = (unsigned char *) malloc(RSA_size(rsa_key));
-  cipher_len = RSA_public_encrypt(AES_KEY_BYTES, AESKey, raw_aes_key, rsa_key, RSA_PKCS1_PADDING);
+  cipher_len = RSA_public_encrypt(KEY_BYTES, aes_key, raw_aes_key, rsa_key, RSA_PKCS1_PADDING);
   RSA_free(rsa_key);
 
   /* Guardar en un archivo la clave AES encriptada */
@@ -202,13 +197,9 @@ void encryptAESKey_withRSA(const char* AESkeyFile, unsigned char AESKey[AES_KEY_
     #ifdef GTK_GUI
     create_error_dialog();
     #endif
-    perror("Error al crear el archivo de la clave AES.");
-    free(raw_aes_key);
-    remove(rsa_path);
+    perror("Error al abrir el archivo de la clave AES.");
     exit(EXIT_FAILURE);
   }
 
   fwrite(raw_aes_key, ENC_ELEMENT_BYTES, cipher_len, aes_stream);
-  fclose(aes_stream);
-  free(raw_aes_key);
 }
