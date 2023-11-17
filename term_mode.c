@@ -1,3 +1,4 @@
+#include <linux/limits.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -9,12 +10,11 @@
 void init_term(void) {
   OperationData data;
 
-  /* Mostar el logo */
+  /* Mostrar el logo */
   system("clear");
   FILE* ptr = fopen("extra/logo.txt", "r");
-  if(ptr == NULL) {
-    perror("No se encuentra el archivo de inicio.");
-  }
+  if(ptr == NULL)
+    p_error("No se encuentra el archivo de inicio.");
   char buff[100];
 
   while (fgets(buff, sizeof(buff), ptr) != NULL)
@@ -25,13 +25,23 @@ void init_term(void) {
   /* Obtener el modo */
   getAppMode(&data);
   getModeData(&data);
-   
+
+  //data.mode = DECRYPTION_MODE;
+  //strcpy(data.file_path, "i.png");
+
   switch (data.mode) {
     case ENCRYPTION_MODE:
-      encryptFile_withAES(data.file_path);
+      encryptFile(
+        data.file_path,
+        data.passwd
+      );
       break;
     case DECRYPTION_MODE:
-      decryptFile_withAES(data.file_path, data.key_path);
+      decryptFile(
+        data.file_path,
+        data.passwd,
+        data.key_path
+      );
       break;
   }
 }
@@ -62,16 +72,19 @@ void getAppMode(OperationData* d) {
 }
 
 void getModeData(OperationData* d) {
-  char input[2048];
+  char input[PATH_MAX];
 
   switch (d->mode) {
     case ENCRYPTION_MODE:    
       next_line()
       print_title("Encriptacion")
       user_input("Ruta del archivo a encriptar", "%s", input)
-      next_line()
-
       strcpy(d->file_path, input);
+
+      user_input("Password", "%s", input)
+      strcpy(d->passwd, input);
+      next_line()
+      
       break;
 
     case DECRYPTION_MODE:
@@ -82,7 +95,11 @@ void getModeData(OperationData* d) {
 
       user_input("Ruta de la clave", "%s", input)
       strcpy(d->key_path, input);
+
+      user_input("Password", "%s", input)
+      strcpy(d->passwd, input);
       next_line()
+
       break;
     }
 }

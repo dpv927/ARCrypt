@@ -48,15 +48,15 @@
 /* Bytes del hash SHA2 */
 #if(SHA2_BITS==224)
   #define SHA2_BYTES 28
-  #define SHA_ALGORITHM SHA224()
+  #define SHA2_ALGORITHM EVP_sha224()
 #elif(SHA2_BITS==256)
   #define SHA2_BYTES 32
-  #define SHA_ALGORITHM SHA256()
+  #define SHA2_ALGORITHM EVP_sha256()
 #elif(SHA2_BITS==384)
   #define SHA2_BYTES 48
-  #define SHA_ALGORITHM SHA384()
+  #define SHA2_ALGORITHM EVP_sha384()
 #elif(SHA2_BITS==512)
   #define SHA2_BYTES 64
-  #define SHA_ALGORITHM SHA512()
+  #define SHA2_ALGORITHM EVP_sha512()
 #endif
 

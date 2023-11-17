@@ -1,3 +1,4 @@
+#include <linux/limits.h>
 #include <stdint.h>
 #include "openSSL/params.h"
 
@@ -8,8 +9,9 @@
 /* Datos necesarios */
 typedef struct {
   uint8_t mode;
-  char file_path[FILE_PATH_BYTES];
-  char key_path[FILE_PATH_BYTES];
+  char file_path[PATH_MAX];
+  char key_path[PATH_MAX];
+  char passwd[AES_KEY_BYTES];
 } OperationData;
 
 /* @brief Inicia la aplicacion en modo terminal. 

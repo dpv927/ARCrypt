@@ -2,11 +2,11 @@ CC=gcc
 CFLAGS=-Ofast -march=native -mtune=native
 
 # --- Archivos a compilar
-OPENSSL_SRCS = ./openSSL/encryption.c ./openSSL/decryption.c
+OPENSSL_SRCS = ./openSSL/encryption.c ./openSSL/decryption.c ./openSSL/files.c ./openSSL/hash.c ./openSSL/iv_kdf.c ./openSSL/superkey.c
 GUI_SRCS = gui_mode.c ./gtk/dialogs.c ./gtk/gui.c
 TERM_SRCS = term_mode.c 
-TARGET_TERM=aes
-TARGET_GUI=aes-gui
+TARGET_TERM=kyberc
+TARGET_GUI=kyberc-gui
 
 # --- Flags OpenSSL ---
 OPENSSLLIBS=-I /usr/include/openssl
@@ -24,7 +24,7 @@ OPENSSLFLAGS=-lssl -lcrypto
 GTK_EXTRA := $(shell pkg-config --cflags --libs gtk+-3.0)
 
 # --- Opciones de compilacion
-all: term gui
+all: term # gui
 
 term: 
 	$(CC) $(OPENSSLLIBS) main.c $(OPENSSL_SRCS) $(TERM_SRCS) -o $(TARGET_TERM) $(OPENSSLFLAGS) $(CFLAGS)

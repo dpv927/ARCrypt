@@ -1,90 +1,129 @@
 #include <openssl/evp.h>
 #include <openssl/aes.h>
+#include <openssl/rand.h>
 #include <openssl/pem.h>
-#include <sys/stat.h>
 #include <libgen.h>
-#include <unistd.h>
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
+#include "hash.h"
+#include "files.h"
 #include "params.h"
+#include "iv_kdf.h"
+#include "superkey.h"
 #include "decryption.h"
 #include "../utils/messages.h"
 
-void decryptFile_withAES(const char* inputFile, const char* keyFile) {
-  unsigned char inBuf[DEC_CIPHER_SIZE];
-  unsigned char outBuf[DEC_BUFF_SIZE];
-  unsigned char key[AES_KEY_BYTES];
+void decryptFile(const char* inputFile, const char* passwd,
+  const char* keyFile) 
+{
+  /* Todas las claves utilizadas */
+  struct SuperKey superkey;
+  u_char phash[SHA2_BYTES];
+  u_char usr_iv[AES_IV_BYTES];
+  u_char aes[AES_KEY_BYTES];
+  int rsa_len;
+
+  // Otros buffers y datos
+  u_char inBuf[DEC_BUFF_SIZE];
+  u_char outBuf[DEC_CIPHER_SIZE];
   char outputFile[FILE_PATH_BYTES+4];
-  char input_file_cpy[FILE_PATH_BYTES];
-  char rsa_key_file[FILE_PATH_BYTES+8];
-  EVP_CIPHER_CTX* ctx; 
-  struct stat inode_info;
-  char* dir_name;
+  EVP_CIPHER_CTX* ctx;
   FILE* input;
   FILE* output;
   int bytesRead;
   int outLen;
-
-  /* Comprobar informacion basica sobre la ruta del fichero objetivo.
-  * Hay que comprobar si el usuario esta queriendo acceder an archivo al que no tiene
-  * acceso, no existe o es una carpeta. 
-  *
-  * La encriptacion de carpetas no esta soportada ya que no se trata de un fichero
-  * regular, es decir, no podemos leer los bytes en bruto de la carpeta porque 
-  * la carpeta no es mas que una 'estructura' en la cual los archivos que contiene
-  * 'apuntan' a esta. Por lo tanto, leer los bytes de dicha carpeta no seria lo mismo
-  * que leer los bytes de cada uno de los archivos que contiene.
-  * 
-  * Para solucionar esto, se podria aplicar una funcion de encriptacion recursiva a 
-  * cada uno de los archivos de dicho directorio, o mas sencillo aun, comprimir dicha
-  * carpeta en cualquier formato y encriptarla ya que en este ultimo caso si se trataria
-  * de un fichero regular. */
-  if(stat(inputFile, &inode_info)) {
+  
+  /*  Comprobar si el archivo existe y si es asi, ver si
+   *  el usuario tiene permisos de escritura y lectura
+   *  sobre el directorio padre y el archivo. */
+  int val = check_file(inputFile);
+  if(val != FileIsGood) {
     #ifdef GTK_GUI
     create_error_dialog();
     #endif
-    p_error("No se puede acceder o no existe el fichero.")
-    exit(EXIT_FAILURE);
-  } if((inode_info.st_mode & S_IFMT) == S_IFDIR) {
-    #ifdef GTK_GUI
-    create_error_dialog();
-    #endif
-    p_error("La encriptacion de carpetas no esta soportada. "\
-    "Comprime dicha carpeta para asi obtener un archivo.")
+    p_error(FC_ERRORS[val])
     exit(EXIT_FAILURE);
   }
 
-  /* Ver si el usuario tiene permisos de lectura/escritura y acceso sobre el 
-  * directorio en el que se encuentra el archivo a encriptar.
-  *
-  * Es importante verificar esto ya que el usuario puede tener permisos de lectura
-  *  en el directorio objetivo, pero no de escritura, y eso es muy importante a la 
-  * hora de generar y eliminar los archivos en operaciones posteriores. */
-  strcpy(input_file_cpy, inputFile);
-  dir_name = dirname((char*) input_file_cpy);
-  if (access(dir_name, W_OK | X_OK | R_OK)) {
+  // TODO Comprobar Hash de la superclave?
+  // // // 
+
+  // Recuperar del archivo de la clave la superclave, 
+  // de forma que obtenemos todas las claves protegidas y 
+  // el hash de la contrasenacon la que se encripto el archivo.
+  p_info("Recuperando la superclave")
+  val = get_superkey(keyFile, &superkey);
+  if(val == SKError) {
     #ifdef GTK_GUI
     create_error_dialog();
     #endif
-    p_error("No tienes los permisos de lectura/escritura necesarios.")
+    if(!superkey.rsa) 
+      free(superkey.rsa);
     exit(EXIT_FAILURE);
   }
 
-  /* Desencriptar la clave AES. En primer lugar, deberemos obtener el nombre
-  * del archivo de la clave privada RSA (que se supone que se encuentra en el
-  * mismo direcrorio que la clave y su mismo nommbre pero con la extension .rsa).
-  * 
-  * Despues llamamos a la funcion decryptKey, de manera que desencriptamos la clave
-  * AES con la privada RSA, dando sus rutas y un buffer donde guardar la clave. */
-  p_infoString("Desencriptando la clave AES", keyFile)
-  strcpy(rsa_key_file, keyFile);
-  strcat(rsa_key_file, ".rsa");
-  decryptAESKey_withRSA(keyFile, rsa_key_file, key);
+  // ------------------------------------------
+  // ||      Comprobar password con hash     ||
+  // ------------------------------------------
+  // Calcular el hash de la contrasena que se ha pasado
+  // y comprobar si es la que se utilizo para encriptar el archivo. 
+  p_info("Comprobando si la contrasena es correcta.")
+  p_info_tabbed("Calculando el hash del password")
+  calculateHash((const u_char*) passwd, AES_KEY_BYTES, phash);
+  
+  p_info_tabbed("Comprobando si las claves coinciden")
+  if(memcmp(superkey.phash, phash, SHA2_BYTES)){
+    #ifdef GTK_GUI
+    create_error_dialog();
+    #endif
+    p_error("La contrasena es incorrecta.");
+    free(superkey.rsa);
+    exit(EXIT_FAILURE);
+  }
 
-  /* Iniciar contexto de desencriptacion. */
+  // ------------------------------------------
+  // ||      Desencriptar RSA con AES        ||
+  // ------------------------------------------
+  p_info("Desencriptando la clave RSA con AES")
+  derive_AES_key((u_char*) passwd, usr_iv);
+  
+  u_char rsa_key[superkey.rsa_len+128];
+  rsa_len = decryptRSAKey_withAES(
+    superkey.rsa,
+    rsa_key,
+    superkey.rsa_len,
+    (u_char*) passwd,
+    usr_iv
+  );
+
+  if(rsa_len == -1) {
+    #ifdef GTK_GUI
+    create_error_dialog();
+    #endif
+    p_error("No se pudo desencriptar la clave RSA con AES")
+    free(superkey.rsa);
+    exit(EXIT_FAILURE);
+  } else superkey.rsa_len = val;
+  free(superkey.rsa);
+
+  // ------------------------------------------
+  // ||      Desencriptar AES con RSA        ||
+  // ------------------------------------------
+  p_info("Desencriptando la clave AES con RSA")
+  decryptAESKey_withRSA(
+    superkey.aes,
+    aes,
+    rsa_key,
+    rsa_len
+  );
+
+  // ------------------------------------------
+  // ||   Desencriptar el fichero objetivo   ||
+  // ------------------------------------------
+  // Iniciar contexto de desencriptacion.
   ctx = EVP_CIPHER_CTX_new();
-  EVP_DecryptInit_ex(ctx, AES_ALGORITHM, NULL, key, NULL);
+  EVP_DecryptInit_ex(ctx, AES_ALGORITHM, NULL, aes, NULL);
     
   /* Abrir stream en el archivo a desencriptar. */
   if((input = fopen(inputFile, "rb")) == NULL){
@@ -109,78 +148,66 @@ void decryptFile_withAES(const char* inputFile, const char* keyFile) {
     exit(EXIT_FAILURE);
   }
   
-  /* Este es el bucle principal del motor de desencriptacion. 
-  * El funcionamiento basico es obtener DEC_CIPHER_SIZE (es una tamano cualquiera (p.e 8kb)) bytes del 
-  * archivo a desencriptar, los guarda en el buffer inBuf y con ayuda de la funcion @EVP_DecryptUpdate,
-  * descifra los datos de inBuf y los guarda en outBuf.
-  * 
-  * Por otro lado, necesitamos llevar cuenta de los bytes que leemos del archivo a desencriptar, ya que no
-  * siempre vamos a poder leer DEC_CIPHER_SIZE bytes (p.e el archivo no tiene un multiplo de DEC_CIPHER_SIZE
-  * bytes o simplemente es mas pequeno que DEC_CIPHER_SIZE). De esta manera, podemos escribir la informacion
-  * descifrada en el archivo temporal (ni mas ni menos). */
+  /* Desencriptar de 8kb en 8kb */
   p_infoString("Desencriptando el archivo", inputFile)
-  while ((bytesRead = fread(inBuf, DEC_ELEMENT_BYTES, DEC_CIPHER_SIZE, input)) > 0) {
+  while ((bytesRead = fread(inBuf, sizeof(u_char), DEC_CIPHER_SIZE, input)) > 0) {
     EVP_DecryptUpdate(ctx, outBuf, &outLen, inBuf, bytesRead);
-    fwrite(outBuf, DEC_ELEMENT_BYTES, outLen, output);
+    fwrite(outBuf, sizeof(u_char), outLen, output);
   }
   
   /* Quitar relleno si es necesario */
   EVP_DecryptFinal_ex(ctx, outBuf, &outLen);
-  fwrite(outBuf, DEC_ELEMENT_BYTES, outLen, output);
+  fwrite(outBuf, sizeof(u_char), outLen, output);
   
   /* Liberar memoria y streams */
   EVP_CIPHER_CTX_free(ctx);
   fclose(input);
   fclose(output);
 
-  /* S:wustituir */
+  /* Sustituir */
   remove(inputFile);
   rename(outputFile, inputFile);
+  remove(keyFile);
 }
 
-void decryptAESKey_withRSA(const char* AESkeyFile, const char* RSAkeyFile, unsigned char AESkey[AES_KEY_BYTES]) {
-  unsigned char raw_aes_key[RSA_KEY_BYTES];
-  FILE* aes_stream;
-  FILE* rsa_stream;
-  RSA* rsa_key;
+int decryptRSAKey_withAES(const u_char* cipher_rsa_key, u_char* rsa_key, const size_t rsa_len, 
+  const u_char aes_key[AES_KEY_BYTES], const u_char aes_key_iv[AES_IV_BYTES]) 
+{
+  EVP_CIPHER_CTX *ctx;
+  int plaintext_len;
+  int len;
 
-  // Obtener la clave AES (abrir stream)
-  p_infoString("Recuperando la clave AES encriptada", AESkeyFile)
-  if((aes_stream = fopen(AESkeyFile, "r")) == NULL) {
-    #ifdef GTK_GUI
-    create_error_dialog();
-    #endif
-    p_error("No se pudo abrir el archivo de la clave encriptada AES")
-    exit(EXIT_FAILURE);
-  }
+  ctx = EVP_CIPHER_CTX_new();
+  EVP_DecryptInit_ex(ctx, AES_ALGORITHM, NULL, aes_key, aes_key_iv);
+  EVP_DecryptUpdate(ctx, rsa_key, &len, cipher_rsa_key, rsa_len);
+  plaintext_len = len;
+  EVP_DecryptFinal_ex(ctx, rsa_key+len, &len);
+  plaintext_len += len;
+  EVP_CIPHER_CTX_free(ctx);
+  return plaintext_len;
+}
 
-  /* Obtener la clave AES encriptada.
-  * La clave tendra como maximo un tamano de RSA_KEY_BITS>>3 (RSA_KEY_BITS/8),
-  * que es el tamano maximo que puede tener un bloque cifrado (No puede ser mayor
-  * que el tamano de la clave utilizada para encriptar). */
-  fread(raw_aes_key, sizeof(unsigned char), RSA_KEY_BYTES, aes_stream);
-  fclose(aes_stream);
+void decryptAESKey_withRSA(const unsigned char* cipher_aes_key, 
+  unsigned char* aes_key, unsigned char* rsa_skey, size_t rsa_keylen)
+{
+  EVP_PKEY* evp_rsa_key = NULL;
+  EVP_PKEY_CTX* ctx;
+  BIO* rsa_bio;
+  size_t outlen;
+
+  // Read RSA private key from mem
+  rsa_bio = BIO_new(BIO_s_mem());
+  BIO_write(rsa_bio, rsa_skey, rsa_keylen);
+  evp_rsa_key = PEM_read_bio_PrivateKey_ex(rsa_bio, NULL, NULL, NULL, NULL, NULL);
+  BIO_free(rsa_bio); 
   
-  // Obtener la clave RSA (abrir stream)
-  p_infoString("Recuperando la clave RSA privada", RSAkeyFile)
-  if((rsa_stream = fopen(RSAkeyFile, "r")) == NULL) {
-    #ifdef GTK_GUI
-    create_error_dialog();
-    #endif
-    p_error("Error al abrir el archivo de la clave RSA")
-    exit(EXIT_FAILURE);
-  }
+  // Decrypt AES key with RSA 
+  ctx = EVP_PKEY_CTX_new(evp_rsa_key, NULL);
+  EVP_PKEY_decrypt_init(ctx);
+  EVP_PKEY_CTX_set_rsa_padding(ctx, RSA_PKCS1_OAEP_PADDING);
+  EVP_PKEY_decrypt(ctx, aes_key, &outlen, cipher_aes_key, RSA_KEY_BYTES);
 
-  /* Guardar en el objeto rsa_key la clave privada RSA recuperada con
-  * @PEM_read_RSAPrivateKey.*/
-  rsa_key = PEM_read_RSAPrivateKey(rsa_stream, NULL, NULL, NULL);
-  fclose(rsa_stream);
-
-  // Desencriptar la clave aes
-  p_info("Desencriptando la clave AES");
-  RSA_private_decrypt(RSA_KEY_BYTES, raw_aes_key, AESkey, rsa_key, RSA_PKCS1_PADDING);
-  RSA_free(rsa_key);
-  
-  remove(RSAkeyFile);
-  remove(AESkeyFile);
+  // Free all that stuff!
+  EVP_PKEY_CTX_free(ctx);
+  EVP_PKEY_free(evp_rsa_key);
 }
