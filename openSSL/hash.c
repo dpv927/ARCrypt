@@ -4,7 +4,7 @@
 #include <openssl/evp.h>
 #include "params.h"
 
-void calculateHash(const u_char* m, const size_t m_size, 
+void calculateHash(const char* m, const size_t m_size, 
   unsigned char hash[SHA2_BYTES]) 
 {
   EVP_MD_CTX *mdctx;

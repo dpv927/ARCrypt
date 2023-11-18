@@ -157,7 +157,7 @@ void encryptFile(const char* inputFile, const char passwd[AES_KEY_BYTES])
   // ||      Calcular Hash del password      ||
   // ------------------------------------------
   p_info("Calculando el hash (resumen) de la contrasena")
-  calculateHash((const u_char*) passwd, AES_KEY_BYTES, superkey.phash);
+  calculateHash(passwd, strlen(passwd), superkey.phash);
 
   // ------------------------------------------
   // ||      Generar la Superclave           ||
