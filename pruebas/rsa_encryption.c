@@ -86,19 +86,3 @@ void decryptAESKey_withRSA(const unsigned char* cipher_aes_key,
   EVP_PKEY_free(evp_rsa_key);
 }
 
-/// 
-/// @brief Calculates the hash value over a buffer.
-/// 
-/// @param m A message of any legth
-/// @param hash Buffer where the hash value is going to be stored
-///
-void calculateHash(const char* m, unsigned char hash[256]) 
-{
-  EVP_MD_CTX *mdctx;
-  mdctx = EVP_MD_CTX_create();
-  EVP_DigestInit_ex(mdctx, EVP_sha256(), NULL);
-  EVP_DigestUpdate(mdctx, m, strlen(m));
-  EVP_DigestFinal_ex(mdctx, hash, NULL);
-  EVP_MD_CTX_destroy(mdctx);
-  EVP_cleanup();
-}
