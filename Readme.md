@@ -1,6 +1,6 @@
 # kayberc
 
-## Dependencias
+## Dependencias de Compilación
 Si quieres compilar el programa, deberas instalar los siguientes paquetes:
 - gcc
 - make
