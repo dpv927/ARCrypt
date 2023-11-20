@@ -3,6 +3,7 @@
 #include <openssl/rand.h>
 #include <openssl/pem.h>
 #include <libgen.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -17,13 +18,15 @@
 #include "../gtk/dialogs.h"
 #endif
 
-void encryptFile(const char* inputFile, const char passwd[AES_KEY_BYTES]) 
+void encryptFile(const char* inputFile, char passwd[AES_KEY_BYTES]) 
 {
   /* Todas las claves utilizadas */
   struct SuperKey superkey;
   u_char gen_aes_key[AES_KEY_BYTES];
   u_char usr_iv[AES_IV_BYTES];
   u_char* gen_rsa_pem;
+  size_t rsa_pem_len;
+  int passwd_len;
   
   /* Buffers temporales y demas */
   u_char inBuf[ENC_BUFF_SIZE];
@@ -118,28 +121,34 @@ void encryptFile(const char* inputFile, const char passwd[AES_KEY_BYTES])
   gen_rsa_pem = encryptAESKey_withRSA(
     gen_aes_key,
     superkey.aes,
-    &superkey.rsa_len
+    &rsa_pem_len
   );
 
   // ------------------------------------------
   // || Encriptar clave RSA con AES personal ||
   // ------------------------------------------
   p_info("Encriptando la clave RSA con AES personal")
-  derive_AES_key((u_char*) passwd, usr_iv);
+  //derive_AES_key((u_char*) passwd, usr_iv);
 
-  superkey.rsa = malloc(superkey.rsa_len+128);
+  superkey.rsa = malloc(rsa_pem_len+128);
   if(!superkey.rsa) {
     free(gen_rsa_pem);
     p_error("No se puedo reservar la memoria a la clave RSA.")
     exit(EXIT_FAILURE);
   }
 
+  passwd_len = strlen(passwd);
+  for (int i=passwd_len; i<AES_KEY_BYTES; i++) {
+    // Rellenar con 0s las posiciones no usadas del vector
+    // de la contrasena por si algun valor no es 0.
+    passwd[i] = (char) 0x00;
+  }
+
   val = encryptRSAKey_withAES(
     gen_rsa_pem,
+    rsa_pem_len,
     superkey.rsa,
-    superkey.rsa_len,
-    (u_char*) passwd,
-    usr_iv
+    (u_char*) passwd
   );
 
   if(val == -1) {
@@ -157,7 +166,7 @@ void encryptFile(const char* inputFile, const char passwd[AES_KEY_BYTES])
   // ||      Calcular Hash del password      ||
   // ------------------------------------------
   p_info("Calculando el hash (resumen) de la contrasena")
-  calculateHash(passwd, strlen(passwd), superkey.phash);
+  calculateHash(passwd, passwd_len, superkey.phash);
 
   // ------------------------------------------
   // ||      Generar la Superclave           ||
@@ -182,12 +191,12 @@ void encryptFile(const char* inputFile, const char passwd[AES_KEY_BYTES])
   free(superkey.rsa);
 }
 
-u_char* encryptAESKey_withRSA(const u_char aesk[AES_KEY_BYTES],
-  u_char cipher_aesk[RSA_KEY_BYTES], size_t* RSA_PEM_len)
+unsigned char* encryptAESKey_withRSA(const unsigned char* aes_key, 
+  unsigned char* cipher_aes_key, size_t* rsa_len)
 {
   EVP_PKEY *rsa_keypair = NULL;
   EVP_PKEY_CTX *ctx;
-  u_char* rsa_skey;
+  unsigned char* rsa_skey;
   BIO* rsa_bio;
   size_t outlen;
   size_t pending;
@@ -205,15 +214,20 @@ u_char* encryptAESKey_withRSA(const u_char aesk[AES_KEY_BYTES],
   ctx = EVP_PKEY_CTX_new(rsa_keypair, NULL);
   EVP_PKEY_encrypt_init(ctx);
   EVP_PKEY_CTX_set_rsa_padding(ctx, RSA_PKCS1_OAEP_PADDING);
-  EVP_PKEY_encrypt(ctx, cipher_aesk, &outlen, aesk, AES_KEY_BYTES);
-  
+  //EVP_PKEY_encrypt(ctx, cipher_aes_key, &outlen, aes_key, AES_KEY_BYTES);
+
+  for (size_t offset = 0; offset < AES_KEY_BYTES; offset += RSA_KEY_BYTES) {
+    EVP_PKEY_encrypt(ctx, cipher_aes_key + offset, rsa_len,
+      aes_key + offset, AES_KEY_BYTES - offset);
+  }
+
   // Write RSA private key to mem 
   rsa_bio = BIO_new(BIO_s_mem());
   PEM_write_bio_PrivateKey(rsa_bio, rsa_keypair, NULL, NULL, 0, 0, NULL);
   pending = BIO_pending(rsa_bio);
-  rsa_skey = (u_char*) malloc(pending);
+  rsa_skey = OPENSSL_malloc(pending);
   BIO_read(rsa_bio, rsa_skey, pending);
-  *RSA_PEM_len = pending;
+  *rsa_len = pending;
 
   // Free all that stuff!
   BIO_free(rsa_bio);
@@ -222,19 +236,19 @@ u_char* encryptAESKey_withRSA(const u_char aesk[AES_KEY_BYTES],
   return rsa_skey;
 }
 
-int encryptRSAKey_withAES(const u_char* rsa_key, u_char* cipher_rsa_key, const size_t rsa_len, 
-  const u_char aes_key[AES_KEY_BYTES], const u_char aes_key_iv[AES_IV_BYTES]) 
+int encryptRSAKey_withAES(u_char* rsa, size_t rsa_len, 
+	u_char* cipher_rsa, u_char* aes_key) 
 {
   EVP_CIPHER_CTX* ctx;
   int cipher_len;
   int len;
  
-  p_info_tabbed("Iniciando encriptacion")
+ p_info_tabbed("Iniciando encriptacion")
   ctx = EVP_CIPHER_CTX_new();
-  EVP_EncryptInit_ex(ctx, AES_ALGORITHM, NULL, aes_key, aes_key_iv);
-  EVP_EncryptUpdate(ctx, cipher_rsa_key, &len, rsa_key, rsa_len);
+  EVP_EncryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, aes_key, NULL);
+  EVP_EncryptUpdate(ctx, cipher_rsa, &len, rsa, rsa_len);
   cipher_len = len;
-  EVP_EncryptFinal_ex(ctx, cipher_rsa_key+len, &len);
+  EVP_EncryptFinal_ex(ctx, cipher_rsa+len, &len);
   cipher_len += len;
   EVP_CIPHER_CTX_free(ctx);
   p_info_tabbed("Encriptacion finalizada")
