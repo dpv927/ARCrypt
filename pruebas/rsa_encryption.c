@@ -3,6 +3,7 @@
 #include <openssl/evp.h>
 #include <openssl/pem.h>
 #include <openssl/bio.h>
+#include <string.h>
 #define AES_KEY_BYTES 32
 #define RSA_KEY_BYTES 256
 
@@ -36,7 +37,12 @@ unsigned char* encryptAESKey_withRSA(const unsigned char aes_key[AES_KEY_BYTES],
   ctx = EVP_PKEY_CTX_new(rsa_keypair, NULL);
   EVP_PKEY_encrypt_init(ctx);
   EVP_PKEY_CTX_set_rsa_padding(ctx, RSA_PKCS1_OAEP_PADDING);
-  EVP_PKEY_encrypt(ctx, cipher_aes_key, &outlen, aes_key, AES_KEY_BYTES);
+  //EVP_PKEY_encrypt(ctx, cipher_aes_key, &outlen, aes_key, AES_KEY_BYTES);
+
+
+  for (size_t offset = 0; offset < AES_KEY_BYTES; offset += RSA_KEY_BYTES) {
+    EVP_PKEY_encrypt(ctx, cipher_aes_key + offset, RSA_PEM_len, aes_key + offset, AES_KEY_BYTES - offset);
+  }
 
   // Write RSA private key to mem 
   rsa_bio = BIO_new(BIO_s_mem());
@@ -64,7 +70,7 @@ unsigned char* encryptAESKey_withRSA(const unsigned char aes_key[AES_KEY_BYTES],
 void decryptAESKey_withRSA(const unsigned char* cipher_aes_key, 
   unsigned char* aes_key, unsigned char* rsa_skey, size_t rsa_keylen)
 {
-  EVP_PKEY* evp_rsa_key;
+  EVP_PKEY* evp_rsa_key = NULL;
   EVP_PKEY_CTX* ctx;
   BIO* rsa_bio;
   size_t outlen;
@@ -79,10 +85,40 @@ void decryptAESKey_withRSA(const unsigned char* cipher_aes_key,
   ctx = EVP_PKEY_CTX_new(evp_rsa_key, NULL);
   EVP_PKEY_decrypt_init(ctx);
   EVP_PKEY_CTX_set_rsa_padding(ctx, RSA_PKCS1_OAEP_PADDING);
-  EVP_PKEY_decrypt(ctx, aes_key, &outlen, cipher_aes_key, RSA_KEY_BYTES);
+  //EVP_PKEY_decrypt(ctx, aes_key, &outlen, cipher_aes_key, RSA_KEY_BYTES);
+
+  // Loop para manejar bloques si es necesario
+  for (size_t offset = 0; offset < RSA_KEY_BYTES; offset += AES_KEY_BYTES) {
+    EVP_PKEY_decrypt(ctx, aes_key + offset, &outlen, cipher_aes_key + offset, RSA_KEY_BYTES - offset);
+  }
 
   // Free all that stuff!
   EVP_PKEY_CTX_free(ctx);
   EVP_PKEY_free(evp_rsa_key);
 }
 
+int main(void) {
+  char input[AES_KEY_BYTES];
+  char output[AES_KEY_BYTES];
+  unsigned char cipher_input[RSA_KEY_BYTES];
+  u_char* rsa;
+  size_t rsa_len;
+
+  printf("Type a message: ");
+  scanf("%s", input);
+
+  printf("Message: ");
+  for (int i=0; i<strlen(input); i++) {
+    printf("%02x ", input[i]);
+  }
+
+  rsa = encryptAESKey_withRSA((unsigned char*) input, cipher_input, &rsa_len);
+  decryptAESKey_withRSA(cipher_input, (unsigned char*) output, rsa, rsa_len);
+
+  printf("\nDecrypted message:");
+  for (int i=0; i<AES_KEY_BYTES; i++) {
+    printf("%02x ", output[i]);
+  }
+
+  free(rsa);
+} 
