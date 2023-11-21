@@ -1,3 +1,9 @@
 *.o
 aes
 *.glade~
+*.png
+*.jpg
+*.jpeg
+*.key
+*.enc
+*.dec
