@@ -6,11 +6,11 @@ OPENSSL_SRCS = ./openSSL/encryption.c ./openSSL/decryption.c ./openSSL/files.c .
 
 TERM_SRCS = term_mode.c 
 TERM_OBJS = $(OPENSSL_SRCS:.c=.o) $(TERM_SRCS:.c=.o)
-TARGET_TERM=kyberc
+TARGET_TERM=arcrypt
 
 GUI_SRCS = gui_mode.c ./gtk/dialogs.c ./gtk/gui.c
 GUI_OBJS = $(OPENSSL_SRCS:.c=.o) $(GUI_SRCS:.c=.o)
-TARGET_GUI=kyberc-gui
+TARGET_GUI=arcrypt-gui
 
 # --- Flags OpenSSL ---
 OPENSSLLIBS=-I /usr/include/openssl
