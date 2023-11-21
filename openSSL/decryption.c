@@ -10,7 +10,6 @@
 #include "hash.h"
 #include "files.h"
 #include "params.h"
-#include "iv_kdf.h"
 #include "superkey.h"
 #include "decryption.h"
 #include "../utils/messages.h"
@@ -21,7 +20,6 @@ void decryptFile(const char* inputFile, char* passwd,
   /* Todas las claves utilizadas */
   struct SuperKey superkey;
   u_char phash[SHA2_BYTES];
-  u_char usr_iv[AES_IV_BYTES];
   u_char aes[AES_KEY_BYTES];
   int rsa_len;
   int passwd_len;
@@ -89,7 +87,6 @@ void decryptFile(const char* inputFile, char* passwd,
   // ||      Desencriptar RSA con AES        ||
   // ------------------------------------------
   p_info("Desencriptando la clave RSA con AES")
-  //derive_AES_key((u_char*) passwd, usr_iv);
   u_char rsa_key[superkey.rsa_len+128];
 
   for (int i=passwd_len; i<AES_KEY_BYTES; i++) {
