@@ -13,7 +13,7 @@
 /// @param inputFile Ruta del archivo a encriptar.
 /// @param contrasena que el usuario va a utilizar para proteger el archivo encriptado
 ///
-void encryptFile(const char* inputFile, const char passwd[AES_KEY_BYTES]);
+void encryptFile(const char* inputFile, char passwd[AES_KEY_BYTES]);
 
 ///
 /// @brief Encripta un buffer en el que se almacena una clave AES. La funcion genera un par de claves
@@ -26,12 +26,12 @@ void encryptFile(const char* inputFile, const char passwd[AES_KEY_BYTES]);
 /// 
 /// @param aes_key Buffer de la clave AES a encriptar.
 /// @param cipher_aes_key Buffer donde guardar la clave AES encriptada.
-/// @param RSA_PEM_len Puntero a una variable donde se guardará la longitud de la clave RSA.
+/// @param rsa_len Puntero a una variable donde se guardará la longitud de la clave RSA.
 ///
 /// @return Puntero a la clave privada RSA reservada con malloc. 
 ///
-u_char* encryptAESKey_withRSA(const u_char aesk[AES_KEY_BYTES], 
-  u_char cipher_aesk[RSA_KEY_BYTES], size_t* RSA_PEM_len);
+unsigned char* encryptAESKey_withRSA(const unsigned char* aes_key, 
+  unsigned char* cipher_aes_key, size_t* rsa_len);
 
 ///
 /// @brief Encripta un buffer que contiene la clave privada RSA con AES, utilizando como clave la contraseña  
@@ -40,12 +40,12 @@ u_char* encryptAESKey_withRSA(const u_char aesk[AES_KEY_BYTES],
 /// Nota: Tener en cuenta que la clave encriptada RSA se guardará de nuevo en el buffer rsa_len que 
 /// se pasa como parámetro.
 ///
-/// @param rsa_key Buffer con la clave privada (en realidad el PEM) RSA.
+/// @param rsa Buffer con la clave privada (en realidad el PEM) RSA.
 /// @param rsa_len Longitud del buffer de la clave privada RSA.
+/// @param cipher_rsa Buffer donde guardar la clave RSA encriptada.
 /// @param aes_key Buffer con la clave AES. Sera la contraseña del usuario.
-/// @param aes_key_iv Buffer con el IV generado a partir de la clave AES.
 ///
 /// @return Devuelve el nuevo tamaño de la clave encriptada RSA. Si hay un error, devuelve -1.
 ///
-int encryptRSAKey_withAES(const u_char* rsa_key, u_char* cipher_rsa_key, const size_t rsa_len, 
-  const u_char aes_key[AES_KEY_BYTES], const u_char aes_key_iv[AES_IV_BYTES]);
+int encryptRSAKey_withAES(u_char* rsa, size_t rsa_len, 
+	u_char* cipher_rsa, u_char* aes_key);
