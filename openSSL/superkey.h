@@ -39,9 +39,12 @@
 /// +--------------------------------+ 
 /// |    AES Key encriptada con RSA  | 
 /// |            256 bytes           | 
-/// +--------------------------------+ 
+/// +--------------------------------+
 /// |      Longitud del RSA PEM      | 
-/// |         (sizeof size_t)        | 
+/// |         (sizeof size_t)        |
+/// +--------------------------------+ 
+/// |      Longitud del RSA PEM      |
+///     encriptado (sizeof size_t)  | 
 /// +--------------------------------+
 /// |     PEM de RSA private key     |
 /// |       encriptada con AES       |
@@ -85,6 +88,12 @@ struct SuperKey {
   /// privada RSA.
   ///
   size_t rsa_len;
+
+  ///
+  /// @brief rsa_len: Longitud en bytes del PEM de la clave
+  /// privada RSA encriptada.
+  ///
+  size_t cipher_rsa_len;
 
   ///
   /// @brief phash: Buffer de longitud SHA2_BYTES que contiene 

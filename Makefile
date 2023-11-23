@@ -35,7 +35,7 @@ term-objs: $(TERM_OBJS) main.o
 	$(CC) $^ -o $(TARGET_TERM) $(OPENSSLFLAGS) $(CFLAGS)
 
 term: term-objs # Compilar el programa en modo terminal (Sin GUI).  
-	$(CC) $(OPENSSLLIBS) main.c $(TERM_OBJS) -o $(TARGET_TERM) $(OPENSSLFLAGS) $(CFLAGS)
+	$(CC) $(OPENSSLLIBS) main.c $(TERM_OBJS) -o $(TARGET_TERM) $(OPENSSLFLAGS) $(CFLAGS) -g
 
 gui-objs: $(GUI_OBJS) main.o
 	$(CC) $^ -o $(OPENSSLFLAGS) $(GTK_EXTRA) $(CFLAGS) -DGTK_GUI
