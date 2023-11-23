@@ -18,16 +18,13 @@ void init_term(void) {
   char buff[100];
 
   while (fgets(buff, sizeof(buff), ptr) != NULL)
-    printf("%s", buff);
-  printf("\n");
+    printf("\033[1m%s", buff);
+  printf("\033[0m\n");
   fclose(ptr);
 
   /* Obtener el modo */
   getAppMode(&data);
   getModeData(&data);
-
-  //data.mode = DECRYPTION_MODE;
-  //strcpy(data.file_path, "i.png");
 
   switch (data.mode) {
     case ENCRYPTION_MODE:

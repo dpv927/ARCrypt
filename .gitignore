@@ -7,4 +7,6 @@ aes
 *.key
 *.enc
 *.dec
+*.out
 arcrypt
+arcrypt-gui
