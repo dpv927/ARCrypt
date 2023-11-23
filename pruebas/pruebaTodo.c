@@ -6,6 +6,29 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+/*
+ * Clave AES:
+
+
+4c f2 ca 9f cb 46 42 b2 8e 2f 40 90 ae e6 1b 5e
+9b c8 4b 43 92 b0 62 f1 b2 74 54 08 55 f4 ad c4
+
+
+38 9d 7a 11 88 55 00 00 d5 76 7a 11 88 55 00 00
+0a 00 00 00 00 00 00 00 a1 5a 8a 31 fd 7f 00 00
+
+
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ * */
+
 void printblock(char*, unsigned char*, int);
 
 /* Datos de AES para encriptar */
@@ -20,13 +43,13 @@ int rsa_len;
 int cipher_rsa_len;
 
 /* Datos del usuario */
-unsigned char password[256>>3];
+unsigned char password[256>>3] = "12345678";
 
 int main(void) {
     /* Inicializar la clave AES y contrasena */
     for (int i = 0; i<256>>3; i++) {
         aes_key[i] = i; 
-        password[i] = i+3; }
+        /*password[i] = i+3;*/ }
 
    printblock("Clave AES", aes_key, 256>>3);
    //printblock("Password", password, 256>>3);

@@ -1,3 +1,4 @@
+#include <openssl/crypto.h>
 #include <openssl/evp.h>
 #include <openssl/aes.h>
 #include <openssl/rand.h>
@@ -21,10 +22,8 @@ void encryptFile(const char* inputFile, char passwd[AES_KEY_BYTES])
 {
   /* Todas las claves utilizadas */
   struct SuperKey superkey;
-  u_char gen_aes_key[AES_KEY_BYTES];
-  u_char* gen_rsa_pem;
-  size_t rsa_pem_len;
-  int passwd_len;
+  u_char aes_key[AES_KEY_BYTES];
+  u_char* rsa_key;
   
   /* Buffers temporales y demas */
   u_char inBuf[ENC_BUFF_SIZE];
@@ -52,17 +51,17 @@ void encryptFile(const char* inputFile, char passwd[AES_KEY_BYTES])
   /* Generar la clave AES.
   * Guardamos en aesk una secuencia de bytes aleatorios */
   p_info("Generando la clave AES");
-  if (RAND_bytes(gen_aes_key, AES_KEY_BYTES) != 1) {
+  if (RAND_bytes(aes_key, AES_KEY_BYTES) != 1) {
     #ifdef GTK_GUI
     create_error_dialog();
     #endif
     p_error("Error: No se pudo generar la clave AES");
     exit(EXIT_FAILURE);
   }
-  
+
   /* Iniciar el contexto de encriptacion */
   ctx = EVP_CIPHER_CTX_new();  
-  EVP_EncryptInit_ex(ctx, AES_ALGORITHM, NULL, gen_aes_key, NULL);
+  EVP_EncryptInit_ex(ctx, AES_ALGORITHM, NULL, aes_key, NULL);
 
   /* Abrir el archivo a encriptar en modo lectura */
   if((input = fopen(inputFile, "rb")) == NULL){
@@ -112,58 +111,63 @@ void encryptFile(const char* inputFile, char passwd[AES_KEY_BYTES])
   remove(inputFile);
   rename(outputFile, inputFile);
 
-  // ------------------------------------------
-  // || Encriptar clave AES generada con RSA ||
-  // ------------------------------------------
+  /* Encriptar la clave AES con RSA (la clave RSA se genera aqui) */
   p_info("Encriptando la clave AES con RSA")
-  gen_rsa_pem = encryptAESKey_withRSA(
-    gen_aes_key,
-    superkey.aes,
-    &rsa_pem_len
-  );
+  EVP_PKEY *rsa_keypair = NULL;
+  EVP_PKEY_CTX *rsa_ctx;
+  BIO* rsa_bio;
+  size_t outlen;
 
-  // ------------------------------------------
-  // || Encriptar clave RSA con AES personal ||
-  // ------------------------------------------
-  p_info("Encriptando la clave RSA con AES personal")
+  rsa_ctx = EVP_PKEY_CTX_new_id(EVP_PKEY_RSA, NULL);
+  EVP_PKEY_keygen_init(rsa_ctx);
+  EVP_PKEY_CTX_set_rsa_keygen_bits(rsa_ctx, 2048);
+  EVP_PKEY_keygen(rsa_ctx, &rsa_keypair);
+  EVP_PKEY_CTX_free(rsa_ctx);
 
-  superkey.rsa = malloc(rsa_pem_len+128);
-  if(!superkey.rsa) {
-    free(gen_rsa_pem);
-    p_error("No se puedo reservar la memoria a la clave RSA.")
-    exit(EXIT_FAILURE);
-  }
+  rsa_ctx = EVP_PKEY_CTX_new(rsa_keypair, NULL);
+  EVP_PKEY_encrypt_init(rsa_ctx);
+  EVP_PKEY_CTX_set_rsa_padding(rsa_ctx, RSA_PKCS1_OAEP_PADDING);
+  EVP_PKEY_encrypt(rsa_ctx, superkey.aes, &outlen, aes_key, 256>>3);
+  EVP_PKEY_CTX_free(rsa_ctx);
 
-  passwd_len = strlen(passwd);
+  rsa_bio = BIO_new(BIO_s_mem());
+  PEM_write_bio_PrivateKey(rsa_bio, rsa_keypair, NULL, NULL, 0, 0, NULL);
+  superkey.rsa_len = BIO_pending(rsa_bio);
+  rsa_key = OPENSSL_malloc(superkey.rsa_len);
+  BIO_read(rsa_bio, rsa_key, superkey.rsa_len);
+  BIO_free(rsa_bio);
+  EVP_PKEY_free(rsa_keypair);
+
+  /* Encriptar la clave RSA con la contrasena AES del usuario */
+  p_info("Encriptando RSA con la clave AES pesonal")
+  EVP_CIPHER_CTX* c_ctx;
+  int len;
+
+  int passwd_len = strlen(passwd);
   for (int i=passwd_len; i<AES_KEY_BYTES; i++) {
-    // Rellenar con 0s las posiciones no usadas del vector
-    // de la contrasena por si algun valor no es 0.
-    passwd[i] = (char) 0x00;
+    // Rellenar con 0s la clave del usuario
+    passwd[i] = 0x0;
   }
 
-  val = encryptRSAKey_withAES(
-    gen_rsa_pem,
-    rsa_pem_len,
-    superkey.rsa,
-    (u_char*) passwd
-  );
-
-  if(val == -1) {
-    #ifdef GTK_GUI
-    create_error_dialog();
-    #endif
-    free(gen_rsa_pem);
-    free(superkey.rsa);
-    p_error("No se pudo encriptar la clave AES con RSA")
-    exit(EXIT_FAILURE);
-  } else superkey.rsa_len = val;
-  
+  c_ctx = EVP_CIPHER_CTX_new();
+  EVP_EncryptInit_ex(c_ctx, EVP_aes_256_cbc(), NULL, (u_char*) passwd, NULL);
+  superkey.rsa = OPENSSL_malloc(superkey.rsa_len*2);
+  EVP_EncryptUpdate(c_ctx, superkey.rsa, &len, rsa_key, superkey.rsa_len);
+  superkey.cipher_rsa_len = len;
+  EVP_EncryptFinal_ex(c_ctx, superkey.rsa+len, &len);
+  superkey.cipher_rsa_len += len;
+  EVP_CIPHER_CTX_free(c_ctx);
+  OPENSSL_free(rsa_key);
 
   // ------------------------------------------
   // ||      Calcular Hash del password      ||
   // ------------------------------------------
   p_info("Calculando el hash (resumen) de la contrasena")
-  calculateHash(passwd, passwd_len, superkey.phash);
+  calculateHash(
+    passwd,
+    passwd_len,
+    superkey.phash
+  );
 
   // ------------------------------------------
   // ||      Generar la Superclave           ||
@@ -181,13 +185,10 @@ void encryptFile(const char* inputFile, char passwd[AES_KEY_BYTES])
     create_error_dialog();
     #endif
     p_error("No se puedo escribir la superclave.");
-  }
-
-  // Liberar
-  free(gen_rsa_pem);
-  free(superkey.rsa);
+  } OPENSSL_free(superkey.rsa);
 }
 
+/*
 unsigned char* encryptAESKey_withRSA(const unsigned char* aes_key, 
   unsigned char* cipher_aes_key, size_t* rsa_len)
 {
@@ -250,4 +251,4 @@ int encryptRSAKey_withAES(u_char* rsa, size_t rsa_len,
   EVP_CIPHER_CTX_free(ctx);
   p_info_tabbed("Encriptacion finalizada")
   return cipher_len;
-}
+}*/

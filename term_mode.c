@@ -11,15 +11,15 @@ void init_term(void) {
   OperationData data;
 
   /* Mostrar el logo */
-  system("clear");
+  //system("clear");
   FILE* ptr = fopen("extra/logo.txt", "r");
   if(ptr == NULL)
     p_error("No se encuentra el archivo de inicio.");
   char buff[100];
 
   while (fgets(buff, sizeof(buff), ptr) != NULL)
-    printf("%s", buff);
-  printf("\n");
+    printf("\033[1m%s", buff);
+  printf("\033[0m\n");
   fclose(ptr);
 
   /* Obtener el modo */

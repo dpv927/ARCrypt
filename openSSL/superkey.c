@@ -1,3 +1,4 @@
+ #include <openssl/crypto.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -38,16 +39,24 @@ int write_superkey(const char* path, const struct SuperKey* skey) {
         return SKError;
     }
 
+    // Escribir la longitud del PEM encriptado de la clave privada RSA
+    p_info_tabbed("Escribiendo la longitud del PEM encriptado de RSA ")
+    write_bytes = fwrite(&(skey->cipher_rsa_len), sizeof(size_t), 1, file);
+    if (write_bytes < 1) {
+        p_error("No se pudo escribir la longitud de RSA encriptado.")
+        return SKError;
+    }
+
     // Escribir el PEM de la clave privada RSA
     p_info_tabbed("Escribiendo la clave RSA encriptada")
-    write_bytes = fwrite(skey->rsa, sizeof(u_char), skey->rsa_len, file);
-    if (write_bytes < skey->rsa_len) {
+    write_bytes = fwrite(skey->rsa, sizeof(u_char), skey->cipher_rsa_len, file);
+    if (write_bytes < skey->cipher_rsa_len) {
         p_error("No se pudo escribir la clave RSA.")
         return SKError;
     }
 
     // Escribir el hash de la contrasena del usuario
-    p_info_tabbed("Escribiendp el hash del password")
+    p_info_tabbed("Escribiendo el hash del password")
     write_bytes = fwrite(skey->phash, sizeof(u_char), SHA2_BYTES, file);
     if (write_bytes < SHA2_BYTES) {
         p_error("No se pudo escribir el hash del passwd.")
@@ -95,8 +104,17 @@ int get_superkey(const char* path, struct SuperKey* skey) {
         return SKError;
     }
 
+    // Leer la longitud del PEM de la clave privada RSA
+    p_info_tabbed("Recuperando la longitud del PEM encriptado de RSA")
+    read_bytes = fread(&(skey->cipher_rsa_len), sizeof(size_t), 1, file);
+    if (read_bytes < 1) {
+        p_error("No es una superclave: No contiene la longitud de RSA encriptado")
+        fclose(file);
+        return SKError;
+    }
+
     // Reservar memoria para rsak_pem y leer el PEM de la clave privada RSA
-    skey->rsa = (u_char*)malloc(skey->rsa_len);
+    skey->rsa = (u_char*) OPENSSL_malloc(skey->cipher_rsa_len);
     if (!skey->rsa) { // skey->rsa == null
         p_error("No se pudo reservar memoria para la clave RSA")
         fclose(file);
@@ -104,8 +122,8 @@ int get_superkey(const char* path, struct SuperKey* skey) {
     }
     
     p_info_tabbed("Recuperando la clave privada RSA")
-    read_bytes = fread(skey->rsa, sizeof(u_char), skey->rsa_len, file);
-    if (read_bytes < skey->rsa_len) {
+    read_bytes = fread(skey->rsa, sizeof(u_char), skey->cipher_rsa_len, file);
+    if (read_bytes < skey->cipher_rsa_len) {
         p_error("No es una superclave: No contiene una clave RSA")
         fclose(file);
         return SKError;
