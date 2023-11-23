@@ -11,7 +11,7 @@ void init_term(void) {
   OperationData data;
 
   /* Mostrar el logo */
-  //system("clear");
+  system("clear");
   FILE* ptr = fopen("extra/logo.txt", "r");
   if(ptr == NULL)
     p_error("No se encuentra el archivo de inicio.");
@@ -25,9 +25,6 @@ void init_term(void) {
   /* Obtener el modo */
   getAppMode(&data);
   getModeData(&data);
-
-  //data.mode = DECRYPTION_MODE;
-  //strcpy(data.file_path, "i.png");
 
   switch (data.mode) {
     case ENCRYPTION_MODE:

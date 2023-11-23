@@ -1,13 +1,9 @@
-#include <openssl/crypto.h>
 #include <openssl/evp.h>
-#include <openssl/aes.h>
 #include <openssl/rand.h>
 #include <openssl/pem.h>
 #include <libgen.h>
-#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include "hash.h"
 #include "files.h"
 #include "params.h"

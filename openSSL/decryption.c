@@ -1,14 +1,8 @@
-#include <openssl/crypto.h>
 #include <openssl/evp.h>
-#include <openssl/aes.h>
-#include <openssl/rand.h>
 #include <openssl/pem.h>
 #include <libgen.h>
-#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <sys/types.h>
 #include "hash.h"
 #include "files.h"
 #include "params.h"
@@ -36,11 +30,23 @@ void decryptFile(const char* inputFile, char* passwd,
   FILE* output;
   int bytesRead;
   int outLen;
+  int val;
   
-  /*  Comprobar si el archivo existe y si es asi, ver si
-   *  el usuario tiene permisos de escritura y lectura
-   *  sobre el directorio padre y el archivo. */
-  int val = check_file(inputFile);
+  /* Comprobar permisos sobre el archivo objetivo 
+   * y el archivo de la clave.
+   * * *  */
+  p_info("Comprobando permisos sobre el archivo")
+  val = check_file(inputFile);
+  if(val != FileIsGood) {
+    #ifdef GTK_GUI
+    create_error_dialog();
+    #endif
+    p_error(FC_ERRORS[val])
+    exit(EXIT_FAILURE);
+  }
+
+  p_info("Comprobando permisos sobre la clave")
+  val = check_file(keyFile);
   if(val != FileIsGood) {
     #ifdef GTK_GUI
     create_error_dialog();
