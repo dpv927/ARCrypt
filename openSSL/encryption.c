@@ -10,7 +10,6 @@
 #include "hash.h"
 #include "files.h"
 #include "params.h"
-#include "iv_kdf.h"
 #include "superkey.h"
 #include "encryption.h"
 #include "../utils/messages.h"
@@ -23,7 +22,6 @@ void encryptFile(const char* inputFile, char passwd[AES_KEY_BYTES])
   /* Todas las claves utilizadas */
   struct SuperKey superkey;
   u_char gen_aes_key[AES_KEY_BYTES];
-  u_char usr_iv[AES_IV_BYTES];
   u_char* gen_rsa_pem;
   size_t rsa_pem_len;
   int passwd_len;
@@ -128,7 +126,6 @@ void encryptFile(const char* inputFile, char passwd[AES_KEY_BYTES])
   // || Encriptar clave RSA con AES personal ||
   // ------------------------------------------
   p_info("Encriptando la clave RSA con AES personal")
-  //derive_AES_key((u_char*) passwd, usr_iv);
 
   superkey.rsa = malloc(rsa_pem_len+128);
   if(!superkey.rsa) {

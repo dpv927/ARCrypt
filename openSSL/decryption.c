@@ -10,7 +10,6 @@
 #include "hash.h"
 #include "files.h"
 #include "params.h"
-#include "iv_kdf.h"
 #include "superkey.h"
 #include "decryption.h"
 #include "../utils/messages.h"
@@ -21,8 +20,7 @@ void decryptFile(const char* inputFile, char* passwd,
   /* Todas las claves utilizadas */
   struct SuperKey superkey;
   u_char phash[SHA2_BYTES];
-  u_char usr_iv[AES_IV_BYTES];
-  u_char aes[AES_KEY_BYTES];
+  u_char aes[RSA_KEY_BYTES];
   int rsa_len;
   int passwd_len;
 
@@ -89,8 +87,7 @@ void decryptFile(const char* inputFile, char* passwd,
   // ||      Desencriptar RSA con AES        ||
   // ------------------------------------------
   p_info("Desencriptando la clave RSA con AES")
-  //derive_AES_key((u_char*) passwd, usr_iv);
-  u_char rsa_key[superkey.rsa_len+128];
+  u_char rsa_key[superkey.rsa_len];
 
   for (int i=passwd_len; i<AES_KEY_BYTES; i++) {
     // Rellenar con 0s las posiciones no usadas del vector
@@ -214,13 +211,7 @@ void decryptAESKey_withRSA(const unsigned char* cipher_aes_key,
   ctx = EVP_PKEY_CTX_new(evp_rsa_key, NULL);
   EVP_PKEY_decrypt_init(ctx);
   EVP_PKEY_CTX_set_rsa_padding(ctx, RSA_PKCS1_OAEP_PADDING);
-  //EVP_PKEY_decrypt(ctx, aes_key, &outlen, cipher_aes_key, RSA_KEY_BYTES);
-
-  // Loop para manejar bloques si es necesario
-  for (size_t offset = 0; offset < RSA_KEY_BYTES; offset += AES_KEY_BYTES) {
-    EVP_PKEY_decrypt(ctx, aes_key + offset, &outlen,
-      cipher_aes_key + offset, RSA_KEY_BYTES - offset);
-  }
+  EVP_PKEY_decrypt(ctx, aes_key, &outlen, cipher_aes_key, RSA_KEY_BYTES);
 
   // Free all that stuff!
   EVP_PKEY_CTX_free(ctx);
