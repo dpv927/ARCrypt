@@ -108,6 +108,8 @@ void encryptFile(const char* inputFile, char passwd[AES_KEY_BYTES])
     create_error_dialog();
     #endif
     p_error("No se pudo crear el archivo de encriptacion");
+    fclose(input);
+    EVP_CIPHER_CTX_free(ctx);
     exit(EXIT_FAILURE);
   }
 

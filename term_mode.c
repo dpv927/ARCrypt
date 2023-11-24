@@ -117,7 +117,7 @@ void getModeData(OperationData* d) {
 
       if(!mode) { /* Generar certificado */ 
         user_input("Ruta de la firma", "%s", d->sig_path);
-      }
+      }next_line()
       break;
     }
 }

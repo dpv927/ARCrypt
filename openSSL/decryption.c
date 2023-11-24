@@ -25,7 +25,7 @@ void decryptFile(const char* inputFile, char* passwd,
   int passwd_len;
 
   // Otros buffers y datos
-  u_char sig[64+AES_KEY_BYTES];
+  u_char sig[256+AES_KEY_BYTES];
   u_char inBuf[DEC_BUFF_SIZE];
   u_char outBuf[DEC_CIPHER_SIZE];
   char outputFile[PATH_MAX];
@@ -77,8 +77,6 @@ void decryptFile(const char* inputFile, char* passwd,
   // ||      Comprobar password con hash     ||
   // ==========================================
   p_info("Comprobando si la contrasena es correcta.")
-  p_info_tabbed("Calculando el hash del password")
-
   passwd_len = strlen(passwd);
   for (int i=passwd_len; i<AES_KEY_BYTES; i++) {
     // En este momento no hace falta pero nos servira
@@ -88,7 +86,6 @@ void decryptFile(const char* inputFile, char* passwd,
   }
   calculateHash(passwd, passwd_len, phash);
 
-  p_info_tabbed("Comprobando si las claves coinciden")
   if(memcmp(superkey.phash, phash, SHA2_BYTES)){
     #ifdef GTK_GUI
     create_error_dialog();
@@ -186,6 +183,8 @@ void decryptFile(const char* inputFile, char* passwd,
     create_error_dialog();
     #endif
     p_error("No se pudo crear el archivo de encriptacion temporal")
+    fclose(input);
+    EVP_CIPHER_CTX_free(ctx);
     exit(EXIT_FAILURE);
   }
     
