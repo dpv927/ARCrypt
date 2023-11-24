@@ -30,12 +30,6 @@ int sign_buff(const unsigned char* m, const size_t m_len,
   // Obtener el hash del buffer
   calculateHash((char*)m, m_len, hash);
 
-  printf("\n\n");
-  for (int i = 0; i<SHA2_BYTES; i++) {
-  printf("0x%02x ", hash[i]);
-    if((i+1)%16 == 0) printf("\n");
-  }
-
   // Obtener firma - Al fin y al cabo consiste en encriptar 
   // el hash del mensaje con la clave privada RSA
   ctx = EVP_PKEY_CTX_new(rsa_keypair, NULL);
@@ -124,19 +118,12 @@ int verify_buff_sign(const unsigned char* m, const size_t m_len,
   // Calcular el hash del buffer
   calculateHash((char*)m, m_len, hash);
 
-  printf("\n\n");
-  for (int i = 0; i<SHA2_BYTES; i++) {
-  printf("0x%02x ", hash[i]);
-    if((i+1)%16 == 0) printf("\n");
-  }
-
   // Verificar la firma
   ctx = EVP_PKEY_CTX_new(rsa_pkey, NULL);
   EVP_PKEY_verify_init(ctx);
   EVP_PKEY_CTX_set_rsa_padding(ctx, RSA_PKCS1_PADDING);
   EVP_PKEY_CTX_set_signature_md(ctx, SHA2_ALGORITHM);
   int ret = EVP_PKEY_verify(ctx, sig, siglen, hash, SHA2_BYTES);
-  printf("Validation: %d", ret);
 
   EVP_PKEY_CTX_free(ctx);
   EVP_PKEY_free(rsa_pkey);

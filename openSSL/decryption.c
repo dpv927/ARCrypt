@@ -163,7 +163,7 @@ void decryptFile(const char* inputFile, char* passwd,
   // en caso de que el usuario lo decida
   bytesRead = fread(inBuf, sizeof(u_char), DEC_CIPHER_SIZE, input);
   EVP_DecryptUpdate(ctx, outBuf, &outLen, inBuf, bytesRead);
-  int real = (bytesRead<64)? bytesRead : 64;
+  int real = (bytesRead<256)? bytesRead : 256;
 
   if(!signature) { // (signature == 0) -> Validar firma
     p_infoString("Validando la firma", signatureFile);

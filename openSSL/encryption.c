@@ -25,7 +25,7 @@ void encryptFile(const char* inputFile, char passwd[AES_KEY_BYTES])
   u_char* rsa_key;
   
   /* Buffers temporales y demas */
-  u_char sig[64+AES_KEY_BYTES];
+  u_char sig[256+AES_KEY_BYTES];
   u_char inBuf[ENC_BUFF_SIZE];
   u_char outBuf[ENC_CIPHER_SIZE];
   char outputFile[PATH_MAX];
@@ -84,7 +84,7 @@ void encryptFile(const char* inputFile, char passwd[AES_KEY_BYTES])
 
   p_info("Creando la firma");
   bytesRead = fread(inBuf, sizeof(u_char), ENC_BUFF_SIZE, input);
-  int real = (bytesRead<64)? bytesRead : 64;
+  int real = (bytesRead<256)? bytesRead : 256;
 
   memcpy(sig, inBuf, real);
   memcpy(sig+real, aes_key, AES_KEY_BYTES);
