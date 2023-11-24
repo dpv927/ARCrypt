@@ -9,8 +9,10 @@
 /* Datos necesarios */
 typedef struct {
   uint8_t mode;
+  uint8_t sig;
   char file_path[PATH_MAX];
   char key_path[PATH_MAX];
+  char sig_path[PATH_MAX];
   char passwd[AES_KEY_BYTES];
 } OperationData;
 

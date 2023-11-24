@@ -2,7 +2,8 @@ CC=gcc
 CFLAGS=-Ofast -march=native -mtune=native -Wno-unused-result
 
 # --- Archivos a compilar
-OPENSSL_SRCS = ./openSSL/encryption.c ./openSSL/decryption.c ./openSSL/files.c ./openSSL/hash.c ./openSSL/superkey.c
+OPENSSL_SRCS = ./openSSL/encryption.c ./openSSL/decryption.c ./openSSL/files.c \
+							 ./openSSL/hash.c ./openSSL/superkey.c ./openSSL/sign.c
 
 TERM_SRCS = term_mode.c 
 TERM_OBJS = $(OPENSSL_SRCS:.c=.o) $(TERM_SRCS:.c=.o)

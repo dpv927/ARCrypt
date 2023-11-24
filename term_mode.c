@@ -37,7 +37,9 @@ void init_term(void) {
       decryptFile(
         data.file_path,
         data.passwd,
-        data.key_path
+        data.key_path,
+        data.sig_path,
+        data.sig
       );
       break;
   }
@@ -69,7 +71,9 @@ void getAppMode(OperationData* d) {
 }
 
 void getModeData(OperationData* d) {
+  char* endptr;
   char input[PATH_MAX];
+  int mode;
 
   switch (d->mode) {
     case ENCRYPTION_MODE:    
@@ -82,21 +86,38 @@ void getModeData(OperationData* d) {
       strcpy(d->passwd, input);
       next_line()
       
-      break;
+    break;
 
     case DECRYPTION_MODE:
       next_line()
       print_title("Desencriptacion")
-      user_input("Ruta del archivo a desencriptar", "%s", input)
-      strcpy(d->file_path, input);
-
-      user_input("Ruta de la clave", "%s", input)
-      strcpy(d->key_path, input);
-
-      user_input("Password", "%s", input)
-      strcpy(d->passwd, input);
+      user_input("Ruta del archivo a desencriptar", "%s", d->file_path)
+      user_input("Ruta de la clave", "%s", d->key_path)
+      user_input("Password", "%s", d->passwd)
       next_line()
 
+      print_title("Firma Digital")
+      print_option(0, "Verificar con firma")
+      print_option(1, "No verificar")
+      user_input("Elige una opcion valida", "%s", input);
+      strtol(input, &endptr, 10);
+
+      if(*endptr == '\0') {
+        mode = atoi(input);
+        
+        if(mode != 0 && mode != 1) {
+          printf("\nError: '%s': No es una opcion valida!\n", input);
+          exit(EXIT_FAILURE);
+        }   
+        d->sig = (uint8_t) mode;
+      } else {
+        printf("\nError: '%s': No es una opcion valida!\n", input);
+        exit(EXIT_FAILURE);
+      }
+
+      if(!mode) { /* Generar certificado */ 
+        user_input("Ruta de la firma", "%s", d->sig_path);
+      }
       break;
     }
 }

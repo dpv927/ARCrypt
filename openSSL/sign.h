@@ -74,7 +74,7 @@ enum { S_Valid, S_Error };
 /// @param m_len Longitud en bytes del buffer a firmar
 /// @param path Ruta donde se guardara la firma.
 ///
-int sign_buff(const unsigned char* m, size_t m_len, char* path);
+int sign_buff(const unsigned char* m, const size_t m_len, const char* path);
 
 ///
 /// @brief Comprueba si la firma digital almacenada corresponde 
@@ -84,4 +84,4 @@ int sign_buff(const unsigned char* m, size_t m_len, char* path);
 /// @param m_len Longitud en bytes del buffer a verificar
 /// @param path Ruta donde se encuentra la firma.
 ///
-int verify_buff_sign(const unsigned char* m, size_t m_len, char* path);
+int verify_buff_sign(const unsigned char* m, const size_t m_len, const char* path);
