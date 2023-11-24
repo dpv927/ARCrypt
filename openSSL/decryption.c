@@ -1,17 +1,20 @@
 #include <openssl/evp.h>
 #include <openssl/pem.h>
+#include <linux/limits.h>
 #include <libgen.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "hash.h"
 #include "files.h"
 #include "params.h"
 #include "superkey.h"
 #include "decryption.h"
+#include "sign.h"
 #include "../utils/messages.h"
 
 void decryptFile(const char* inputFile, char* passwd,
-  const char* keyFile) 
+  const char* keyFile, const char* signatureFile, int signature) 
 {
   /* Todas las claves utilizadas */
   struct SuperKey superkey;
@@ -22,9 +25,10 @@ void decryptFile(const char* inputFile, char* passwd,
   int passwd_len;
 
   // Otros buffers y datos
+  u_char sig[256+AES_KEY_BYTES];
   u_char inBuf[DEC_BUFF_SIZE];
   u_char outBuf[DEC_CIPHER_SIZE];
-  char outputFile[FILE_PATH_BYTES+4];
+  char outputFile[PATH_MAX];
   EVP_CIPHER_CTX* ctx;
   FILE* input;
   FILE* output;
@@ -73,8 +77,6 @@ void decryptFile(const char* inputFile, char* passwd,
   // ||      Comprobar password con hash     ||
   // ==========================================
   p_info("Comprobando si la contrasena es correcta.")
-  p_info_tabbed("Calculando el hash del password")
-
   passwd_len = strlen(passwd);
   for (int i=passwd_len; i<AES_KEY_BYTES; i++) {
     // En este momento no hace falta pero nos servira
@@ -84,7 +86,6 @@ void decryptFile(const char* inputFile, char* passwd,
   }
   calculateHash(passwd, passwd_len, phash);
 
-  p_info_tabbed("Comprobando si las claves coinciden")
   if(memcmp(superkey.phash, phash, SHA2_BYTES)){
     #ifdef GTK_GUI
     create_error_dialog();
@@ -155,22 +156,49 @@ void decryptFile(const char* inputFile, char* passwd,
   strcpy(outputFile, inputFile);  
   strcat(outputFile, ".enc");
 
+  // Obtener la firma y verificar que es valida
+  // en caso de que el usuario lo decida
+  bytesRead = fread(inBuf, sizeof(u_char), DEC_CIPHER_SIZE, input);
+  EVP_DecryptUpdate(ctx, outBuf, &outLen, inBuf, bytesRead);
+  int real = (bytesRead<256)? bytesRead : 256;
+
+  if(!signature) { // (signature == 0) -> Validar firma
+    p_infoString("Validando la firma", signatureFile);
+    memcpy(sig, outBuf, real);
+    memcpy(sig+real, AES, AES_KEY_BYTES);
+
+    val = verify_buff_sign(sig, real+AES_KEY_BYTES, signatureFile);
+    if(val == S_Error) {
+      p_error("La firma no es valida")
+      free(AES);
+      fclose(input);
+      EVP_CIPHER_CTX_free(ctx);
+      exit(EXIT_FAILURE);
+    }
+  }
+
   // Abrir stream para escribir en el archivo temporal 
   if((output = fopen(outputFile, "wb")) == NULL) {
     #ifdef GTK_GUI
     create_error_dialog();
     #endif
     p_error("No se pudo crear el archivo de encriptacion temporal")
+    fclose(input);
+    EVP_CIPHER_CTX_free(ctx);
     exit(EXIT_FAILURE);
   }
-  
-  // Desencriptar de 8kb en 8kb 
+    
   p_infoString("Desencriptando el archivo", inputFile)
-  while ((bytesRead = fread(inBuf, sizeof(u_char), DEC_CIPHER_SIZE, input)) > 0) {
+  fwrite(outBuf, sizeof(u_char), outLen, output);
+
+  if(bytesRead == DEC_BUFF_SIZE) {
+    /* El archivo puede contener mas de 8kb. Encriptar de 8kb en 8kb */
+    while ((bytesRead = fread(inBuf, sizeof(u_char), DEC_CIPHER_SIZE, input)) > 0) {
     EVP_DecryptUpdate(ctx, outBuf, &outLen, inBuf, bytesRead);
     fwrite(outBuf, sizeof(u_char), outLen, output);
+    }
   }
-  
+   
   // Quitar relleno si es necesario 
   EVP_DecryptFinal_ex(ctx, outBuf, &outLen);
   fwrite(outBuf, sizeof(u_char), outLen, output);
@@ -185,4 +213,5 @@ void decryptFile(const char* inputFile, char* passwd,
   remove(inputFile);
   rename(outputFile, inputFile);
   remove(keyFile);
+  remove(signatureFile);
 }

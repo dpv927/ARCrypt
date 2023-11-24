@@ -13,5 +13,8 @@
 /// @param inputFile Ruta del archivo a encriptar
 /// @param passwd Contrasena con la que el usuario encripto el archivo
 /// @param keyFile Ruta de la superclave
+/// @param signatureFile Ruta del archivo con la firma
+/// @param signature 0 si hay que verifiacr una firma, 1 en caso contrario
 ///
-void decryptFile(const char* inputFile, char* passwd, const char* keyFile);
+void decryptFile(const char* inputFile, char* passwd, const char* keyFile,
+  const char* signatureFile, int signature);

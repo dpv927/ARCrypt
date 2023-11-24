@@ -2,7 +2,8 @@ CC=gcc
 CFLAGS=-Ofast -march=native -mtune=native -Wno-unused-result
 
 # --- Archivos a compilar
-OPENSSL_SRCS = ./openSSL/encryption.c ./openSSL/decryption.c ./openSSL/files.c ./openSSL/hash.c ./openSSL/superkey.c
+OPENSSL_SRCS = ./openSSL/encryption.c ./openSSL/decryption.c ./openSSL/files.c \
+							 ./openSSL/hash.c ./openSSL/superkey.c ./openSSL/sign.c
 
 TERM_SRCS = term_mode.c 
 TERM_OBJS = $(OPENSSL_SRCS:.c=.o) $(TERM_SRCS:.c=.o)
@@ -15,14 +16,6 @@ TARGET_GUI=arcrypt-gui
 # --- Flags OpenSSL ---
 OPENSSLLIBS=-I /usr/include/openssl
 OPENSSLFLAGS=-lssl -lcrypto
-
-# --- Librerias de Kyber --- 
-#KYBER_LIBS = -lpqcrystals_kyber512_ref -lpqcrystals_fips202_ref
-#KYBER_LIBS = -lpqcrystals_kyber768_ref -lpqcrystals_fips202_ref
-#KYBER_LIBS = -lpqcrystals_kyber1024_ref -lpqcrystals_fips202_ref
-#KYBER_LIBS = -lpqcrystals_kyber512-90s_ref -lpqcrystals_fips202_ref -lpqcrystals_aes256ctr_ref -lpqcrystals_sha2_ref
-#KYBER_LIBS = -lpqcrystals_kyber768-90s_ref -lpqcrystals_fips202_ref -lpqcrystals_aes256ctr_ref -lpqcrystals_sha2_ref
-#KYBER_LIBS = -lpqcrystals_kyber1024-90s_ref -lpqcrystals_fips202_ref -lpqcrystals_aes256ctr_ref -lpqcrystals_sha2_ref
 
 # --- Librerias y flags de GTK
 # GTK_EXTRA := $(shell pkg-config --cflags --libs gtk+-3.0)

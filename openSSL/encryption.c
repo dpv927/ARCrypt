@@ -1,14 +1,17 @@
 #include <openssl/evp.h>
 #include <openssl/rand.h>
 #include <openssl/pem.h>
+#include <linux/limits.h>
 #include <libgen.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "hash.h"
 #include "files.h"
 #include "params.h"
 #include "superkey.h"
 #include "encryption.h"
+#include "sign.h"
 #include "../utils/messages.h"
 #ifdef GTK_GUI
 #include "../gtk/dialogs.h"
@@ -22,9 +25,11 @@ void encryptFile(const char* inputFile, char passwd[AES_KEY_BYTES])
   u_char* rsa_key;
   
   /* Buffers temporales y demas */
+  u_char sig[256+AES_KEY_BYTES];
   u_char inBuf[ENC_BUFF_SIZE];
   u_char outBuf[ENC_CIPHER_SIZE];
-  char outputFile[FILE_PATH_BYTES+4];
+  char outputFile[PATH_MAX];
+  char signatureFile[PATH_MAX];
   EVP_CIPHER_CTX* ctx;
   FILE* input;
   FILE* output;
@@ -55,9 +60,6 @@ void encryptFile(const char* inputFile, char passwd[AES_KEY_BYTES])
     exit(EXIT_FAILURE);
   }
 
-  // ==========================================
-  // ||     Encriptar el archivo objetivo    ||
-  // ==========================================
   ctx = EVP_CIPHER_CTX_new();  
   EVP_EncryptInit_ex(ctx, AES_ALGORITHM, NULL, aes_key, NULL);
 
@@ -76,6 +78,29 @@ void encryptFile(const char* inputFile, char passwd[AES_KEY_BYTES])
   strcpy(outputFile, inputFile);
   strcat(outputFile, ".enc");
 
+  // ==========================================
+  // ||            Crear la firma            ||
+  // ==========================================
+
+  p_info("Creando la firma");
+  bytesRead = fread(inBuf, sizeof(u_char), ENC_BUFF_SIZE, input);
+  int real = (bytesRead<256)? bytesRead : 256;
+
+  memcpy(sig, inBuf, real);
+  memcpy(sig+real, aes_key, AES_KEY_BYTES);
+  
+  // Hacer la firma
+  strcpy(signatureFile, inputFile);
+  strcat(signatureFile, ".sig");
+  val = sign_buff(sig, real+AES_KEY_BYTES, signatureFile);
+  
+  if(val == S_Error) {
+    /* No se pudo generar la firma */
+    fclose(input);
+    EVP_CIPHER_CTX_free(ctx);
+    exit(EXIT_FAILURE); 
+  }
+
   /* Abrir el archivo de encriptado (destino) en 
    * modo escritura. */
   if((output = fopen(outputFile, "wb")) == NULL) {
@@ -83,16 +108,27 @@ void encryptFile(const char* inputFile, char passwd[AES_KEY_BYTES])
     create_error_dialog();
     #endif
     p_error("No se pudo crear el archivo de encriptacion");
+    fclose(input);
+    EVP_CIPHER_CTX_free(ctx);
     exit(EXIT_FAILURE);
   }
-  
+
+  // ==========================================
+  // ||     Encriptar el archivo objetivo    ||
+  // ==========================================
+
   p_infoString("Encriptando", inputFile)
-  /* Encriptar de 8kb en 8kb */
-  while ((bytesRead = fread(inBuf, sizeof(u_char), ENC_BUFF_SIZE, input)) > 0) {
-    EVP_EncryptUpdate(ctx, outBuf, &outLen, inBuf, bytesRead);
-    fwrite(outBuf, sizeof(u_char), outLen, output);
+  EVP_EncryptUpdate(ctx, outBuf, &outLen, inBuf, bytesRead);
+  fwrite(outBuf, sizeof(u_char), outLen, output);
+
+  if(bytesRead == ENC_BUFF_SIZE) {
+    /* El archivo puede contener mas de 8kb. Encriptar de 8kb en 8kb */
+    while ((bytesRead = fread(inBuf, sizeof(u_char), ENC_BUFF_SIZE, input)) > 0) {
+      EVP_EncryptUpdate(ctx, outBuf, &outLen, inBuf, bytesRead);
+      fwrite(outBuf, sizeof(u_char), outLen, output);
+    }
   }
-  
+
   /* Anadir relleno si es necesario */
   EVP_EncryptFinal_ex(ctx, outBuf, &outLen);
   fwrite(outBuf, sizeof(u_char), outLen, output);
